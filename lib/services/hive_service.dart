@@ -4,15 +4,10 @@ import 'package:flutter/services.dart' show rootBundle;
 import 'package:hive_flutter/hive_flutter.dart';
 
 class HiveService {
-  // Box names
   static const String _missionsBox = 'missions';
   static const String _usersBox = 'users';
   static const String _progressBox = 'userProgress';
-
-  // Keys for the current session
   static const String _currentUserKey = 'currentUser';
-
-  // ==================== INITIALIZATION ====================
 
   static Future<void> init() async {
     await Hive.initFlutter();
@@ -21,10 +16,6 @@ class HiveService {
     await Hive.openBox(_progressBox);
   }
 
-  // ==================== AUTHENTICATION ====================
-
-  /// Registers a new user with username and password.
-  /// Throws an exception if username already exists.
   static Future<void> registerUser(String username, String password) async {
     final box = Hive.box(_usersBox);
     if (box.containsKey(username)) {
@@ -34,8 +25,6 @@ class HiveService {
     await box.put(username, hashedPassword);
   }
 
-  /// Verifies username and password.
-  /// Returns true if credentials are correct.
   static Future<bool> loginUser(String username, String password) async {
     final box = Hive.box(_usersBox);
     if (!box.containsKey(username)) return false;
@@ -43,36 +32,28 @@ class HiveService {
     return storedHash == _hashPassword(password);
   }
 
-  /// Returns the currently logged-in username, or empty string if none.
   static String getCurrentUser() {
     final box = Hive.box(_progressBox);
     return box.get(_currentUserKey, defaultValue: '') as String;
   }
 
-  /// Saves the current logged-in user.
   static Future<void> setCurrentUser(String username) async {
     final box = Hive.box(_progressBox);
     await box.put(_currentUserKey, username);
   }
 
-  /// Logs out the current user.
   static Future<void> logout() async {
     final box = Hive.box(_progressBox);
     await box.delete(_currentUserKey);
   }
 
-  /// Returns true if a user is logged in.
   static bool isLoggedIn() => getCurrentUser().isNotEmpty;
-
-  // ==================== PER‑USER DATA HELPERS ====================
 
   static String _userKey(String suffix) {
     final user = getCurrentUser();
     if (user.isEmpty) throw Exception('No user logged in');
     return '${user}_$suffix';
   }
-
-  // ==================== MISSIONS (shared, read-only) ====================
 
   static Future<void> loadMissionsFromAssets() async {
     final box = Hive.box(_missionsBox);
@@ -99,8 +80,6 @@ class HiveService {
     if (raw == null) return null;
     return Map<String, dynamic>.from(jsonDecode(raw as String));
   }
-
-  // ==================== USER PROGRESS (per user) ====================
 
   static Future<void> setDisplayName(String name) async {
     final box = Hive.box(_progressBox);
@@ -139,6 +118,14 @@ class HiveService {
   static int getMissionStars(String missionId) {
     final box = Hive.box(_progressBox);
     return box.get(_userKey('${missionId}_stars'), defaultValue: 0) as int;
+  }
+
+  static int getTotalStars() {
+    int total = 0;
+    for (final mission in getAllMissions()) {
+      total += getMissionStars(mission['id'] as String);
+    }
+    return total;
   }
 
   static Map<String, bool> getAllCompletionStatuses() {
@@ -298,6 +285,7 @@ class HiveService {
       'totalMissions': 15,
       'progressFraction': doneCount / 15,
       'userName': getDisplayName(),
+      'totalStars': getTotalStars(),
       'postTestScore': getPostTestScore(),
       'postTestDate': getPostTestDate()?.toIso8601String(),
       'isCertEligible': isCertificateEligible(),
@@ -307,7 +295,6 @@ class HiveService {
 
   static Future<void> resetAllProgress() async {
     final box = Hive.box(_progressBox);
-    // Only clear keys belonging to current user
     final user = getCurrentUser();
     if (user.isNotEmpty) {
       final keysToDelete = box.keys.where((k) => k.toString().startsWith(user)).toList();
@@ -322,8 +309,6 @@ class HiveService {
     await Hive.box(_usersBox).clear();
     await Hive.box(_progressBox).clear();
   }
-
-  // ==================== PRIVATE HELPERS ====================
 
   static String _hashPassword(String password) {
     final bytes = utf8.encode(password);

@@ -46,6 +46,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   int    get _completed  => _summary['completedMissions'] as int?    ?? 0;
   double get _fraction   => (_summary['progressFraction'] as num?)?.toDouble() ?? 0.0;
   int    get _flags      => _summary['flags']             as int?    ?? 0;
+  int    get _totalStars => _summary['totalStars']        as int?    ?? 0;
 
   int _tierCount(String tier) {
     try {
@@ -90,7 +91,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
           physics: const AlwaysScrollableScrollPhysics(),
           padding: EdgeInsets.symmetric(horizontal: hp, vertical: vs),
           child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-            // Welcome
             Column(children: [
               Text('WELCOME BACK, ${_userName.toUpperCase()}',
                 style: GoogleFonts.orbitron(fontSize: 20, fontWeight: FontWeight.w800,
@@ -101,8 +101,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 style: GoogleFonts.roboto(fontSize: 11, color: Colors.white.withOpacity(0.65))),
             ]),
             SizedBox(height: vs),
-
-            // Mission Progress
             _card(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
               Text('MISSION PROGRESS', style: GoogleFonts.orbitron(fontSize: 14, letterSpacing: 1.2, color: Colors.white)),
               const SizedBox(height: 10),
@@ -113,6 +111,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   const Icon(Icons.flag_rounded, size: 14, color: coralGlow),
                   const SizedBox(width: 4),
                   Text('$_flags / 15',
+                    style: GoogleFonts.roboto(fontSize: 12, fontWeight: FontWeight.w600, color: Colors.white.withOpacity(0.9))),
+                  const SizedBox(width: 12),
+                  const Icon(Icons.star, size: 14, color: Colors.amber),
+                  const SizedBox(width: 4),
+                  Text('$_totalStars / 45',
                     style: GoogleFonts.roboto(fontSize: 12, fontWeight: FontWeight.w600, color: Colors.white.withOpacity(0.9))),
                 ]),
               ]),
@@ -129,8 +132,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 ])),
             ])),
             SizedBox(height: vs * 0.6),
-
-            // Tier cards
             Row(children: [
               Expanded(child: _tierCard('Foundational', _tierCount('Foundational'), 5)),
               const SizedBox(width: 12),
@@ -139,13 +140,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
               Expanded(child: _tierCard('Advanced', _tierCount('Advanced'), 5)),
             ]),
             SizedBox(height: vs * 0.6),
-
-            // System Diagnostic Hero
             _SystemDiagnosticHero(onStart: () => Navigator.push(context,
               MaterialPageRoute(builder: (_) => const PreTestScreen()))),
             SizedBox(height: vs * 0.6),
-
-            // Recommended mission
             _card(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
               Text('RECOMMENDED MISSION',
                 style: GoogleFonts.orbitron(fontSize: 13, letterSpacing: 1.2, color: Colors.white)),
@@ -184,8 +181,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       color: Colors.black, letterSpacing: 1.2)))),
             ])),
             SizedBox(height: vs * 0.6),
-
-            // Quick links
             Row(children: [
               Expanded(child: _quickLink(icon: Icons.storefront_rounded, label: 'VulnShop',
                 onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ShopScreen())))),
@@ -198,8 +193,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const LibraryScreen())))),
             ]),
             SizedBox(height: vs * 0.6),
-
-            // Footer
             _card(child: Row(children: [
               Container(
                 width: sw * 0.1, height: sw * 0.1,
@@ -270,7 +263,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 }
 
-// ── Pulsing hero card ──
 class _SystemDiagnosticHero extends StatefulWidget {
   const _SystemDiagnosticHero({required this.onStart});
   final VoidCallback onStart;

@@ -46,6 +46,52 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
+  Future<void> _editName() async {
+    final controller = TextEditingController(text: _userName);
+    final result = await showDialog<String>(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: const Color(0xFF1A1A1D),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+          side: BorderSide(color: const Color(0xFFFF8A8A).withOpacity(0.5)),
+        ),
+        title: const Text('Edit Your Name',
+            style: TextStyle(color: Color(0xFFFF8A8A), fontWeight: FontWeight.bold)),
+        content: TextField(
+          controller: controller,
+          style: const TextStyle(color: Colors.white),
+          decoration: const InputDecoration(
+            hintText: 'Full name (appears on certificate)',
+            hintStyle: TextStyle(color: Colors.white70),
+            filled: true,
+            fillColor: Colors.black26,
+            border: OutlineInputBorder(),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel', style: TextStyle(color: Colors.white70)),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context, controller.text.trim()),
+            style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFFFF8A8A)),
+            child: const Text('Save', style: TextStyle(color: Colors.black)),
+          ),
+        ],
+      ),
+    );
+    if (result != null && result.isNotEmpty && result != _userName) {
+      await HiveService.setDisplayName(result);
+      _loadData();
+      setState(() {});
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Name updated successfully!'), backgroundColor: Colors.green),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final sw = MediaQuery.of(context).size.width;
@@ -82,7 +128,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 padding: EdgeInsets.symmetric(horizontal: hp, vertical: vs),
                 child: Column(
                   children: [
-                    // Avatar
                     Container(
                       width: avatarSize,
                       height: avatarSize,
@@ -111,7 +156,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ),
                     SizedBox(height: vs * 1.5),
 
-                    // Account info card
                     Container(
                       width: double.infinity,
                       padding: EdgeInsets.all(sw * 0.05),
@@ -146,12 +190,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             ),
                             textAlign: TextAlign.center,
                           ),
+                          const SizedBox(height: 8),
+                          TextButton.icon(
+                            onPressed: _editName,
+                            icon: const Icon(Icons.edit, size: 16, color: Color(0xFFFF8A8A)),
+                            label: const Text('Edit Name', style: TextStyle(color: Color(0xFFFF8A8A), fontSize: 12)),
+                          ),
                         ],
                       ),
                     ),
                     SizedBox(height: vs * 1.5),
 
-                    // Stats
                     Row(
                       children: [
                         Expanded(child: _statCard('Missions Completed', '$_completed', Icons.assignment_turned_in, sw)),
@@ -169,7 +218,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ),
                     SizedBox(height: vs * 1.5),
 
-                    // Settings button
                     SizedBox(
                       width: double.infinity,
                       child: OutlinedButton.icon(
@@ -191,7 +239,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ),
                     SizedBox(height: vs),
 
-                    // Logout button
                     SizedBox(
                       width: double.infinity,
                       child: OutlinedButton.icon(

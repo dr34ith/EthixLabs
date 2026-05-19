@@ -11,6 +11,8 @@ class SignupScreen extends StatefulWidget {
 }
 
 class _SignupScreenState extends State<SignupScreen> {
+  final _firstNameCtrl = TextEditingController();
+  final _lastNameCtrl = TextEditingController();
   final _usernameCtrl = TextEditingController();
   final _passwordCtrl = TextEditingController();
   final _confirmCtrl = TextEditingController();
@@ -18,6 +20,8 @@ class _SignupScreenState extends State<SignupScreen> {
 
   @override
   void dispose() {
+    _firstNameCtrl.dispose();
+    _lastNameCtrl.dispose();
     _usernameCtrl.dispose();
     _passwordCtrl.dispose();
     _confirmCtrl.dispose();
@@ -25,10 +29,16 @@ class _SignupScreenState extends State<SignupScreen> {
   }
 
   Future<void> _handleSignup() async {
+    final firstName = _firstNameCtrl.text.trim();
+    final lastName = _lastNameCtrl.text.trim();
     final username = _usernameCtrl.text.trim();
     final password = _passwordCtrl.text.trim();
     final confirm = _confirmCtrl.text.trim();
 
+    if (firstName.isEmpty || lastName.isEmpty) {
+      _showSnack('Please enter your first and last name.');
+      return;
+    }
     if (username.isEmpty) {
       _showSnack('Please enter a username.');
       return;
@@ -46,10 +56,11 @@ class _SignupScreenState extends State<SignupScreen> {
       return;
     }
 
+    final fullName = '$firstName $lastName';
+
     try {
       await HiveService.registerUser(username, password);
-      // Optionally store display name as username (user can edit later)
-      // Not saving to progress yet because no user is logged in.
+      await HiveService.setDisplayName(fullName);
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Account created! Please log in.'), backgroundColor: Colors.green),
@@ -121,6 +132,10 @@ class _SignupScreenState extends State<SignupScreen> {
                           style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
                         ),
                         const SizedBox(height: 16),
+                        _buildTextField('First Name', _firstNameCtrl),
+                        const SizedBox(height: 12),
+                        _buildTextField('Last Name', _lastNameCtrl),
+                        const SizedBox(height: 12),
                         _buildTextField('Username', _usernameCtrl),
                         const SizedBox(height: 12),
                         _buildTextField('Password', _passwordCtrl, obscure: true),
