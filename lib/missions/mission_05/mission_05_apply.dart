@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:test_vuln/services/hive_service.dart';
 import 'package:test_vuln/missions/step_layout.dart';
 import 'package:test_vuln/main/main_layout.dart';
+import 'package:test_vuln/widgets/mission_complete_modal.dart';
+import 'package:test_vuln/theme/cyber_theme.dart';
 
 class Mission05Apply extends StatefulWidget {
   const Mission05Apply({Key? key}) : super(key: key);
@@ -23,23 +25,23 @@ class _Mission05ApplyState extends State<Mission05Apply> {
     });
   }
 
-  void _showFlagDialog() {
+  void _showComingSoonDialog() {
     showDialog(
       context: context,
-      barrierDismissible: false,
+      barrierDismissible: true,
       builder: (BuildContext context) {
         return AlertDialog(
           backgroundColor: Colors.black87,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(20),
-            side: const BorderSide(color: Colors.white38, width: 2),
+            side: const BorderSide(color: Color(0xFFE68C8C), width: 2),
           ),
           title: const Column(
             children: [
-              Icon(Icons.flag, color: Color(0xFFE68C8C), size: 50),
+              Icon(Icons.construction, color: Color(0xFFE68C8C), size: 50),
               SizedBox(height: 10),
               Text(
-                'FLAG EARNED!',
+                'COMING SOON!',
                 style: TextStyle(
                   color: Color(0xFFE68C8C),
                   fontWeight: FontWeight.bold,
@@ -49,46 +51,41 @@ class _Mission05ApplyState extends State<Mission05Apply> {
               ),
             ],
           ),
-          content: Container(
-            padding: const EdgeInsets.all(10),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(15),
-                  decoration: BoxDecoration(
-                    color: Colors.grey.shade900,
-                    borderRadius: BorderRadius.circular(10),
-                    border: Border.all(color: Colors.white38),
-                  ),
-                  child: const Text(
-                    'ETHIX{BAC_ADMIN_URL_ACCESS}',
-                    style: TextStyle(
-                      color: Color(0xFFE68C8C),
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      fontFamily: 'monospace',
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
+          content: const Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                '🚀 Mission 06 is under construction! 🚧',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
                 ),
-                const SizedBox(height: 15),
-                const Text(
-                  'Congratulations! You have successfully completed Mission 05!',
-                  style: TextStyle(color: Colors.white70),
-                  textAlign: TextAlign.center,
-                ),
-              ],
-            ),
+                textAlign: TextAlign.center,
+              ),
+              SizedBox(height: 12),
+              Text(
+                'Our ethical hackers are working hard to bring you an exciting new challenge.',
+                style: TextStyle(color: Colors.white70),
+                textAlign: TextAlign.center,
+              ),
+              SizedBox(height: 12),
+              Text(
+                'Stay tuned for more hacking adventures! 🔐',
+                style: TextStyle(color: Color(0xFFE68C8C)),
+                textAlign: TextAlign.center,
+              ),
+            ],
           ),
           actions: [
             TextButton(
               onPressed: () {
                 Navigator.pop(context);
+                // Return to dashboard
                 Navigator.pushAndRemoveUntil(
                   context,
                   MaterialPageRoute(builder: (context) => const MainLayout()),
-                      (route) => false,
+                  (route) => false,
                 );
               },
               style: TextButton.styleFrom(
@@ -97,6 +94,31 @@ class _Mission05ApplyState extends State<Mission05Apply> {
               child: const Text('Back to Dashboard'),
             ),
           ],
+        );
+      },
+    );
+  }
+
+  void _showFlagDialog() {
+    showMissionCompleteModal(
+      context: context,
+      flag: 'ETHIX{BAC_ADMIN_URL_ACCESS}',
+      xpReward: 150,
+      nextMission: 'Mission 06',
+      accuracy: 1.0,
+      attempts: 1,
+      hintsUsed: 0,
+      onContinue: () {
+        // Show coming soon dialog instead of navigating
+        Navigator.pop(context); // Close the flag modal
+        _showComingSoonDialog(); // Show coming soon message
+      },
+      onReturnToDashboard: () {
+        Navigator.pop(context);
+        Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(builder: (context) => const MainLayout()),
+          (route) => false,
         );
       },
     );
@@ -117,22 +139,22 @@ class _Mission05ApplyState extends State<Mission05Apply> {
     return StepLayout(
       stepNumber: 'STEP 5 OF 5',
       stepTitle: 'Apply Your Knowledge',
-      onNextPressed: null,
+      onNextPressed: null, // Mission ends via flag dialog
       child: Container(
         width: double.infinity,
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
           gradient: LinearGradient(
             colors: [
-              const Color(0xFFE68C8C).withOpacity(0.15),
-              Colors.black.withOpacity(0.6),
+              CyberTheme.primaryAccent.withOpacity(0.15),
+              CyberTheme.background.withOpacity(0.6),
             ],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
           ),
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
-            color: const Color(0xFFE68C8C).withOpacity(0.5),
+            color: CyberTheme.primaryAccent.withOpacity(0.5),
           ),
         ),
         child: Column(
@@ -164,7 +186,7 @@ class _Mission05ApplyState extends State<Mission05Apply> {
                 child: ElevatedButton(
                   onPressed: _selectedAnswer != null ? _checkAnswer : null,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFFE68C8C),
+                    backgroundColor: CyberTheme.primaryAccent,
                     foregroundColor: Colors.black,
                     padding: const EdgeInsets.symmetric(vertical: 14),
                     shape: RoundedRectangleBorder(
@@ -219,7 +241,7 @@ class _Mission05ApplyState extends State<Mission05Apply> {
                           });
                         },
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFFE68C8C),
+                          backgroundColor: CyberTheme.primaryAccent,
                           foregroundColor: Colors.black,
                         ),
                         child: const Text('Try Again'),
@@ -297,13 +319,13 @@ class _Mission05ApplyState extends State<Mission05Apply> {
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
           color: _selectedAnswer == value
-              ? const Color(0xFFE68C8C).withOpacity(0.3)
-              : Colors.black.withOpacity(0.5),
+              ? CyberTheme.primaryAccent.withOpacity(0.3)
+              : CyberTheme.background.withOpacity(0.5),
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
             color: _selectedAnswer == value
-                ? const Color(0xFFE68C8C)
-                : const Color(0xFFE68C8C).withOpacity(0.3),
+                ? CyberTheme.primaryAccent
+                : CyberTheme.primaryAccent.withOpacity(0.3),
           ),
         ),
         child: Row(
@@ -318,7 +340,7 @@ class _Mission05ApplyState extends State<Mission05Apply> {
                   _selectedAnswer = val as String?;
                 });
               },
-              activeColor: const Color(0xFFE68C8C),
+              activeColor: CyberTheme.primaryAccent,
             ),
             Expanded(
               child: Text(

@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:test_vuln/missions/mission_02/mission_02.dart';
+import 'package:test_vuln/missions/mission_03/mission_03.dart';
 import 'package:test_vuln/services/hive_service.dart';
 import 'package:test_vuln/missions/step_layout.dart';
 import 'package:test_vuln/main/main_layout.dart';
+import 'package:test_vuln/widgets/mission_complete_modal.dart';
+import 'package:test_vuln/theme/cyber_theme.dart';
 
 class Mission02Apply extends StatefulWidget {
   const Mission02Apply({Key? key}) : super(key: key);
@@ -24,79 +28,26 @@ class _Mission02ApplyState extends State<Mission02Apply> {
   }
 
   void _showFlagDialog() {
-    showDialog(
+    showMissionCompleteModal(
       context: context,
-      barrierDismissible: false,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          backgroundColor: Colors.black87,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20),
-            side: const BorderSide(color: Colors.white38, width: 2),
-          ),
-          title: const Column(
-            children: [
-              Icon(Icons.flag, color: Color(0xFFE68C8C), size: 50),
-              SizedBox(height: 10),
-              Text(
-                'FLAG EARNED!',
-                style: TextStyle(
-                  color: Color(0xFFE68C8C),
-                  fontWeight: FontWeight.bold,
-                  fontSize: 20,
-                ),
-                textAlign: TextAlign.center,
-              ),
-            ],
-          ),
-          content: Container(
-            padding: const EdgeInsets.all(10),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(15),
-                  decoration: BoxDecoration(
-                    color: Colors.grey.shade900,
-                    borderRadius: BorderRadius.circular(10),
-                    border: Border.all(color: Colors.white38),
-                  ),
-                  child: const Text(
-                    'ETHIX{SQLI_COMMENT_BYPASS}',
-                    style: TextStyle(
-                      color: Color(0xFFE68C8C),
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      fontFamily: 'monospace',
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                ),
-                const SizedBox(height: 15),
-                const Text(
-                  'Congratulations! You have successfully completed Mission 02!',
-                  style: TextStyle(color: Colors.white70),
-                  textAlign: TextAlign.center,
-                ),
-              ],
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.pop(context);
-                Navigator.pushAndRemoveUntil(
-                  context,
-                  MaterialPageRoute(builder: (context) => const MainLayout()),
-                      (route) => false,
-                );
-              },
-              style: TextButton.styleFrom(
-                foregroundColor: const Color(0xFFE68C8C),
-              ),
-              child: const Text('Back to Dashboard'),
-            ),
-          ],
+      flag: 'ETHIX{SQLI_COMMENT_BYPASS}',
+      xpReward: 150,
+      nextMission: 'Mission 03',
+      accuracy: 1.0,
+      attempts: 1,
+      hintsUsed: 0,
+      onContinue: () {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const Mission_03()), 
+        );
+      },
+      onReturnToDashboard: () {
+        Navigator.pop(context);
+        Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(builder: (context) => const MainLayout()),
+          (route) => false,
         );
       },
     );
@@ -117,23 +68,22 @@ class _Mission02ApplyState extends State<Mission02Apply> {
     return StepLayout(
       stepNumber: 'STEP 5 OF 5',
       stepTitle: 'Apply Your Knowledge',
-      // No next button — mission ends with the flag dialog
-      onNextPressed: null,
+      onNextPressed: null, // Mission ends via flag dialog
       child: Container(
         width: double.infinity,
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
           gradient: LinearGradient(
             colors: [
-              const Color(0xFFE68C8C).withOpacity(0.15),
-              Colors.black.withOpacity(0.6),
+              CyberTheme.primaryAccent.withOpacity(0.15),
+              CyberTheme.background.withOpacity(0.6),
             ],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
           ),
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
-            color: const Color(0xFFE68C8C).withOpacity(0.5),
+            color: CyberTheme.primaryAccent.withOpacity(0.5),
           ),
         ),
         child: Column(
@@ -162,7 +112,7 @@ class _Mission02ApplyState extends State<Mission02Apply> {
                 child: ElevatedButton(
                   onPressed: _selectedAnswer != null ? _checkAnswer : null,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFFE68C8C),
+                    backgroundColor: CyberTheme.primaryAccent,
                     foregroundColor: Colors.black,
                     padding: const EdgeInsets.symmetric(vertical: 14),
                     shape: RoundedRectangleBorder(
@@ -215,7 +165,7 @@ class _Mission02ApplyState extends State<Mission02Apply> {
                           });
                         },
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFFE68C8C),
+                          backgroundColor: CyberTheme.primaryAccent,
                           foregroundColor: Colors.black,
                         ),
                         child: const Text('Try Again'),
@@ -291,13 +241,13 @@ class _Mission02ApplyState extends State<Mission02Apply> {
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
           color: _selectedAnswer == value
-              ? const Color(0xFFE68C8C).withOpacity(0.3)
-              : Colors.black.withOpacity(0.5),
+              ? CyberTheme.primaryAccent.withOpacity(0.3)
+              : CyberTheme.background.withOpacity(0.5),
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
             color: _selectedAnswer == value
-                ? const Color(0xFFE68C8C)
-                : const Color(0xFFE68C8C).withOpacity(0.3),
+                ? CyberTheme.primaryAccent
+                : CyberTheme.primaryAccent.withOpacity(0.3),
           ),
         ),
         child: Row(
@@ -312,7 +262,7 @@ class _Mission02ApplyState extends State<Mission02Apply> {
                   _selectedAnswer = val as String?;
                 });
               },
-              activeColor: const Color(0xFFE68C8C),
+              activeColor: CyberTheme.primaryAccent,
             ),
             Expanded(
               child: Text(

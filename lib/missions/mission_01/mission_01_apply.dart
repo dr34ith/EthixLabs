@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:test_vuln/missions/mission_02/mission_02.dart';
 import 'package:test_vuln/services/hive_service.dart';
 import 'package:test_vuln/missions/step_layout.dart';
 import 'package:test_vuln/main/main_layout.dart';
@@ -36,9 +37,10 @@ class _Mission01ApplyState extends State<Mission01Apply> {
       attempts: 1,
       hintsUsed: 0,
       onContinue: () {
-        Navigator.pop(context);
-        // Navigate to next mission or back to missions list
-        Navigator.pop(context); // Go back to mission overview
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const Mission_02()),
+        );
       },
       onReturnToDashboard: () {
         Navigator.pop(context);

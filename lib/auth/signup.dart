@@ -43,7 +43,7 @@ class _SignupScreenState extends State<SignupScreen> {
       backgroundColor: Colors.green,
     ));
     Navigator.pushReplacement(
-      context, MaterialPageRoute(builder: (_) => const MissionScreen()));
+      context, MaterialPageRoute(builder: (_) => const LoginScreen()));
   }
 
   void _snack(String msg) => ScaffoldMessenger.of(context)
@@ -53,7 +53,11 @@ class _SignupScreenState extends State<SignupScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       extendBodyBehindAppBar: true,
-      appBar: AppBar(backgroundColor: Colors.transparent, elevation: 0),
+      appBar: AppBar(
+        backgroundColor: Colors.transparent, 
+        elevation: 0,
+        automaticallyImplyLeading: false
+      ),
       body: Container(
         height: MediaQuery.of(context).size.height,
         width: MediaQuery.of(context).size.width,
