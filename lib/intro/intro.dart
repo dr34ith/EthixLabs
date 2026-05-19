@@ -4,6 +4,7 @@ import 'package:test_vuln/auth/signup.dart';
 import '../auth/login.dart';
 
 class IntroScreen extends StatelessWidget {
+  const IntroScreen({super.key}); 
   @override
   Widget build(BuildContext context) {
     return Scaffold(

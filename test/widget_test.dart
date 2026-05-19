@@ -1,4 +1,3 @@
-
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -17,15 +16,20 @@ import 'package:test_vuln/services/hive_service.dart';
 import 'package:test_vuln/services/regex_engine.dart';
 import 'package:test_vuln/theme/cyber_theme.dart';
 
-
 Widget _wrap(Widget child) => MaterialApp(
       debugShowCheckedModeBanner: false,
       theme: CyberTheme.themeData,
       home: child,
     );
 
-
-// Setup 
+Future<void> _loginTestUser() async {
+  try {
+    await HiveService.registerUser('tester', 'password123');
+  } catch (_) {}
+  await HiveService.loginUser('tester', 'password123');
+  await HiveService.setCurrentUser('tester');
+  await HiveService.setDisplayName('Tester User');
+}
 
 void main() {
   late Directory tempDir;
@@ -35,6 +39,7 @@ void main() {
     tempDir = await Directory.systemTemp.createTemp('hive_test_');
     Hive.init(tempDir.path);
     await Hive.openBox('missions');
+    await Hive.openBox('users');
     await Hive.openBox('userProgress');
     await HiveService.loadMissionsFromAssets();
   });
@@ -44,9 +49,7 @@ void main() {
     await tempDir.delete(recursive: true);
   });
 
- 
-  // IntroScreen
-  
+  // ==================== IntroScreen ====================
   group('IntroScreen', () {
     testWidgets('renders headline text', (tester) async {
       await tester.pumpWidget(_wrap(IntroScreen()));
@@ -69,14 +72,12 @@ void main() {
     });
   });
 
-  
-  // LoginScreen
-  
+  // ==================== LoginScreen ====================
   group('LoginScreen', () {
     testWidgets('renders LOG-IN button', (tester) async {
       await tester.pumpWidget(_wrap(const LoginScreen()));
       await tester.pumpAndSettle();
-      expect(find.text('LOG-IN'), findsOneWidget);
+      expect(find.text('LOG IN'), findsOneWidget);
     });
 
     testWidgets('renders username and password fields', (tester) async {
@@ -85,10 +86,10 @@ void main() {
       expect(find.byType(TextField), findsNWidgets(2));
     });
 
-    testWidgets('shows snackbar if username is empty', (tester) async {
+    testWidgets('shows snackbar if username empty', (tester) async {
       await tester.pumpWidget(_wrap(const LoginScreen()));
       await tester.pumpAndSettle();
-      await tester.tap(find.text('LOG-IN'));
+      await tester.tap(find.text('LOG IN'));
       await tester.pump();
       expect(find.byType(SnackBar), findsOneWidget);
     });
@@ -96,32 +97,34 @@ void main() {
     testWidgets('Sign-up link is visible', (tester) async {
       await tester.pumpWidget(_wrap(const LoginScreen()));
       await tester.pumpAndSettle();
-      expect(find.text('Sign-up'), findsOneWidget);
+      expect(find.text('Sign up'), findsOneWidget);
     });
 
     testWidgets('tapping Sign-up navigates to SignupScreen', (tester) async {
       await tester.pumpWidget(_wrap(const LoginScreen()));
       await tester.pumpAndSettle();
-      await tester.tap(find.text('Sign-up'));
+      await tester.tap(find.text('Sign up'));
       await tester.pumpAndSettle();
       expect(find.byType(SignupScreen), findsOneWidget);
     });
   });
 
-  
-  // SignupScreen
-  
+  // ==================== SignupScreen ====================
   group('SignupScreen', () {
-    testWidgets('renders CONFIRM & PROCEED button', (tester) async {
+    testWidgets('renders SIGN UP button', (tester) async {
       await tester.pumpWidget(_wrap(const SignupScreen()));
       await tester.pumpAndSettle();
-      expect(find.text('CONFIRM & PROCEED'), findsOneWidget);
+      expect(find.text('SIGN UP'), findsOneWidget);
     });
 
-    testWidgets('shows error if first name is empty', (tester) async {
+    testWidgets('shows error if username empty', (tester) async {
       await tester.pumpWidget(_wrap(const SignupScreen()));
       await tester.pumpAndSettle();
-      await tester.tap(find.text('CONFIRM & PROCEED'));
+      final fields = find.byType(TextField);
+      await tester.enterText(fields.at(0), '');
+      await tester.enterText(fields.at(1), 'pass123');
+      await tester.enterText(fields.at(2), 'pass123');
+      await tester.tap(find.text('SIGN UP'));
       await tester.pump();
       expect(find.byType(SnackBar), findsOneWidget);
     });
@@ -129,31 +132,23 @@ void main() {
     testWidgets('shows error if passwords do not match', (tester) async {
       await tester.pumpWidget(_wrap(const SignupScreen()));
       await tester.pumpAndSettle();
-
       final fields = find.byType(TextField);
-      await tester.enterText(fields.at(0), 'Juan');        // First name
-      await tester.enterText(fields.at(1), 'Dela Cruz');   // Last name
-      await tester.enterText(fields.at(2), 'jdc123');      // Username
-      await tester.enterText(fields.at(3), 'password123'); // Password
-      await tester.enterText(fields.at(4), 'different456'); // Confirm
-
-      await tester.tap(find.text('CONFIRM & PROCEED'));
+      await tester.enterText(fields.at(0), 'juan123');
+      await tester.enterText(fields.at(1), 'password123');
+      await tester.enterText(fields.at(2), 'different456');
+      await tester.tap(find.text('SIGN UP'));
       await tester.pump();
       expect(find.byType(SnackBar), findsOneWidget);
     });
 
-    testWidgets('shows error if password is under 8 chars', (tester) async {
+    testWidgets('shows error if password under 8 chars', (tester) async {
       await tester.pumpWidget(_wrap(const SignupScreen()));
       await tester.pumpAndSettle();
-
       final fields = find.byType(TextField);
-      await tester.enterText(fields.at(0), 'Juan');
-      await tester.enterText(fields.at(1), 'Dela Cruz');
-      await tester.enterText(fields.at(2), 'jdc123');
-      await tester.enterText(fields.at(3), 'short');
-      await tester.enterText(fields.at(4), 'short');
-
-      await tester.tap(find.text('CONFIRM & PROCEED'));
+      await tester.enterText(fields.at(0), 'juan123');
+      await tester.enterText(fields.at(1), 'short');
+      await tester.enterText(fields.at(2), 'short');
+      await tester.tap(find.text('SIGN UP'));
       await tester.pump();
       expect(find.byType(SnackBar), findsOneWidget);
     });
@@ -161,14 +156,16 @@ void main() {
     testWidgets('Log-in link is visible', (tester) async {
       await tester.pumpWidget(_wrap(const SignupScreen()));
       await tester.pumpAndSettle();
-      expect(find.text('Log-in'), findsOneWidget);
+      expect(find.text('Log in'), findsOneWidget);
     });
   });
 
-  
-  //  DashboardScreen
-  
+  // ==================== DashboardScreen ====================
   group('DashboardScreen', () {
+    setUp(() async {
+      await _loginTestUser();
+    });
+
     testWidgets('renders without crashing', (tester) async {
       await tester.pumpWidget(_wrap(const DashboardScreen()));
       await tester.pumpAndSettle();
@@ -216,10 +213,12 @@ void main() {
     });
   });
 
-
-  //  MissionsScreen
-
+  // ==================== MissionsScreen ====================
   group('MissionsScreen', () {
+    setUp(() async {
+      await _loginTestUser();
+    });
+
     testWidgets('renders without crashing', (tester) async {
       await tester.pumpWidget(_wrap(const MissionsScreen()));
       await tester.pumpAndSettle();
@@ -232,7 +231,8 @@ void main() {
       expect(find.textContaining('LEARNING MISSIONS'), findsOneWidget);
     });
 
-    testWidgets('shows tab bar with All / Foundational / Intermediate / Advanced', (tester) async {
+    testWidgets('shows tab bar with All / Foundational / Intermediate / Advanced',
+        (tester) async {
       await tester.pumpWidget(_wrap(const MissionsScreen()));
       await tester.pumpAndSettle();
       expect(find.text('All'), findsOneWidget);
@@ -247,8 +247,8 @@ void main() {
       expect(find.textContaining('The Unlocked Door'), findsWidgets);
     });
 
-
-    testWidgets('switching to Foundational tab shows foundational missions', (tester) async {
+    testWidgets('switching to Foundational tab shows foundational missions',
+        (tester) async {
       await tester.pumpWidget(_wrap(const MissionsScreen()));
       await tester.pumpAndSettle();
       await tester.tap(find.text('Foundational'));
@@ -258,8 +258,8 @@ void main() {
       expect(find.textContaining('Who Owns This Order?'), findsOneWidget);
     });
 
-    // FIX: same — check known Advanced titles instead of a widget count.
-    testWidgets('switching to Advanced tab shows Advanced missions', (tester) async {
+    testWidgets('switching to Advanced tab shows Advanced missions',
+        (tester) async {
       await tester.pumpWidget(_wrap(const MissionsScreen()));
       await tester.pumpAndSettle();
       await tester.tap(find.text('Advanced'));
@@ -269,9 +269,12 @@ void main() {
     });
   });
 
-  // GROUP 6 — NotificationScreen
-
+  // ==================== NotificationScreen ====================
   group('NotificationScreen', () {
+    setUp(() async {
+      await _loginTestUser();
+    });
+
     testWidgets('renders without crashing', (tester) async {
       await tester.pumpWidget(_wrap(const NotificationScreen()));
       await tester.pumpAndSettle();
@@ -288,15 +291,16 @@ void main() {
       await HiveService.resetAllProgress();
       await tester.pumpWidget(_wrap(const NotificationScreen()));
       await tester.pumpAndSettle();
-      // FIX: actual string in notification.dart ends with a period
       expect(find.textContaining('No flags claimed yet.'), findsOneWidget);
     });
   });
 
-  
-  //— ProfileScreen
-  
+  // ==================== ProfileScreen ====================
   group('ProfileScreen', () {
+    setUp(() async {
+      await _loginTestUser();
+    });
+
     testWidgets('renders without crashing', (tester) async {
       await tester.pumpWidget(_wrap(const ProfileScreen()));
       await tester.pumpAndSettle();
@@ -336,10 +340,13 @@ void main() {
       expect(find.text('Are you sure you want to logout?'), findsOneWidget);
     });
   });
- 
-  // MainLayout (bottom nav)
 
+  // ==================== MainLayout ====================
   group('MainLayout', () {
+    setUp(() async {
+      await _loginTestUser();
+    });
+
     testWidgets('renders bottom nav with correct items', (tester) async {
       await tester.pumpWidget(_wrap(const MainLayout()));
       await tester.pumpAndSettle();
@@ -365,20 +372,22 @@ void main() {
     });
   });
 
-  // HiveService unit tests
+  // ==================== HiveService Unit Tests ====================
   group('HiveService', () {
     setUp(() async {
+      await _loginTestUser();
       await HiveService.resetAllProgress();
     });
 
-    test('setUserName and getUserName round-trip', () async {
-      await HiveService.setUserName('Maria Santos');
-      expect(HiveService.getUserName(), equals('Maria Santos'));
+    test('setDisplayName and getDisplayName round-trip', () async {
+      await HiveService.setDisplayName('Maria Santos');
+      expect(HiveService.getDisplayName(), equals('Maria Santos'));
     });
 
-    test('getUserName returns default when no name set', () async {
-      final name = HiveService.getUserName();
-      expect(name, isNotNull);
+    test('getDisplayName returns default when no name set', () async {
+      await HiveService.resetAllProgress();
+      final name = HiveService.getDisplayName();
+      expect(name, equals('Ethical Hacker'));
     });
 
     test('completeMission marks mission as completed', () async {
@@ -386,7 +395,7 @@ void main() {
       expect(HiveService.isMissionCompleted('sqli_01'), isTrue);
     });
 
-    test('isMissionCompleted returns false for uncompleted mission', () {
+    test('isMissionCompleted returns false for uncompleted mission', () async {
       expect(HiveService.isMissionCompleted('sqli_02'), isFalse);
     });
 
@@ -421,9 +430,7 @@ void main() {
     });
   });
 
-
-  //RegexEngine unit tests
-
+  // ==================== RegexEngine Unit Tests ====================
   group('RegexEngine', () {
     test('sqli_01: tautology payload passes', () {
       final result = RegexEngine.checkForMission("' OR '1'='1", 'sqli_auth');
