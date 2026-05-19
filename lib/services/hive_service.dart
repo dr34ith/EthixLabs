@@ -7,6 +7,7 @@ class HiveService {
   static const String _missionsBox = 'missions';
   static const String _usersBox = 'users';
   static const String _progressBox = 'userProgress';
+  static const String _profilesBox = 'userProfiles';
   static const String _currentUserKey = 'currentUser';
 
   static Future<void> init() async {
@@ -14,22 +15,34 @@ class HiveService {
     await Hive.openBox(_missionsBox);
     await Hive.openBox(_usersBox);
     await Hive.openBox(_progressBox);
+    await Hive.openBox(_profilesBox);
   }
 
-  static Future<void> registerUser(String username, String password) async {
-    final box = Hive.box(_usersBox);
-    if (box.containsKey(username)) {
+  static Future<void> registerUser(String username, String password, String displayName) async {
+    final usersBox = Hive.box(_usersBox);
+    if (usersBox.containsKey(username)) {
       throw Exception('Username already exists');
     }
     final hashedPassword = _hashPassword(password);
-    await box.put(username, hashedPassword);
+    await usersBox.put(username, hashedPassword);
+
+    final profilesBox = Hive.box(_profilesBox);
+    await profilesBox.put(username, displayName);
   }
 
   static Future<bool> loginUser(String username, String password) async {
-    final box = Hive.box(_usersBox);
-    if (!box.containsKey(username)) return false;
-    final storedHash = box.get(username) as String;
-    return storedHash == _hashPassword(password);
+    final usersBox = Hive.box(_usersBox);
+    if (!usersBox.containsKey(username)) return false;
+    final storedHash = usersBox.get(username) as String;
+    if (storedHash != _hashPassword(password)) return false;
+
+    await setCurrentUser(username);
+
+    final profilesBox = Hive.box(_profilesBox);
+    final displayName = profilesBox.get(username) as String? ?? username;
+    await setDisplayName(displayName);
+
+    return true;
   }
 
   static String getCurrentUser() {
@@ -308,6 +321,7 @@ class HiveService {
     await Hive.box(_missionsBox).clear();
     await Hive.box(_usersBox).clear();
     await Hive.box(_progressBox).clear();
+    await Hive.box(_profilesBox).clear();
   }
 
   static String _hashPassword(String password) {

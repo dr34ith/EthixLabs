@@ -59,8 +59,7 @@ class _SignupScreenState extends State<SignupScreen> {
     final fullName = '$firstName $lastName';
 
     try {
-      await HiveService.registerUser(username, password);
-      await HiveService.setDisplayName(fullName);
+      await HiveService.registerUser(username, password, fullName);
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Account created! Please log in.'), backgroundColor: Colors.green),

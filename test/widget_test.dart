@@ -24,7 +24,7 @@ Widget _wrap(Widget child) => MaterialApp(
 
 Future<void> _loginTestUser() async {
   try {
-    await HiveService.registerUser('tester', 'password123');
+    await HiveService.registerUser('tester', 'password123', 'Tester User');
   } catch (_) {}
   await HiveService.loginUser('tester', 'password123');
   await HiveService.setCurrentUser('tester');
