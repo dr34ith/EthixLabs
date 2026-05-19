@@ -1,18 +1,18 @@
 import 'package:flutter/material.dart';
-import 'package:test_vuln/main/dashboard.dart';
-import 'package:test_vuln/main/mission.dart';
-import 'package:test_vuln/missions/mission_01/mission_01.dart';
-import 'package:test_vuln/main/mission.dart'; // Add this import
-import 'intro/intro.dart';
-import 'main/main_layout.dart';
+import 'package:test_vuln/intro/intro.dart';
+import 'package:test_vuln/main/main_layout.dart';
+import 'package:test_vuln/services/hive_service.dart';
 import 'package:test_vuln/theme/cyber_theme.dart';
 
-void main() {
-  runApp(const MyApp());
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await HiveService.init();
+  await HiveService.loadMissionsFromAssets();
+  runApp(const EthixLabsApp());
 }
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+class EthixLabsApp extends StatelessWidget {
+  const EthixLabsApp({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -20,20 +20,9 @@ class MyApp extends StatelessWidget {
       title: 'EthixLabs',
       debugShowCheckedModeBanner: false,
       theme: CyberTheme.themeData,
-      // Define named routes
-      initialRoute: '/',
+      home: IntroScreen(),
       routes: {
-        '/': (context) => IntroScreen(),
-        '/dashboard': (context) => const DashboardScreen(),
-        '/missions': (context) => const MissionsScreen(),
-        '/mission_01': (context) => const Mission_01(),
-      },
-
-      onGenerateRoute: (settings) {
-
-        return MaterialPageRoute(
-          builder: (context) => IntroScreen(),
-        );
+        '/main': (context) => const MainLayout(),
       },
     );
   }

@@ -1,0 +1,602 @@
+[
+  {
+    "id": "sqli_01",
+    "order": 1,
+    "tier": "Foundational",
+    "title": "The Unlocked Door",
+    "category": "sqli",
+    "type": "sqli_auth",
+    "inputField": "username",
+    "scenario": "VulnShop Login Page",
+    "observeContent": "You have been assigned to audit VulnShop's login page. The development team suspects the login form was built without proper input validation. The page contains a username field, a password field, no CAPTCHA, and no rate limiting.",
+    "testInstruction": "In the Username field, enter the payload below. Leave the Password field blank. Click Log In.",
+    "testPayloadHint": "' OR '1'='1",
+    "payloads": ["' OR '1'='1", "' OR 1=1--", "' OR '1'='1'--", "' OR 1=1#", "' OR '1'='1'/*"],
+    "identifyQuestion": "What type of vulnerability did you just exploit?",
+    "identifyOptions": [
+      "Cross-Site Scripting (XSS)",
+      "SQL Injection (Login Bypass)",
+      "Insecure Direct Object Reference (IDOR)",
+      "Path Traversal"
+    ],
+    "identifyCorrect": 1,
+    "identifyExplanation": "The payload manipulated the SQL query structure, making the WHERE condition always true. This bypassed authentication and is a classic SQL Injection.",
+    "analyzeImpact": "An attacker can authenticate as any user (including admin) without credentials. Consequences include theft of customer data, unauthorized modifications, and full account takeover.",
+    "cvssScore": "9.8 (Critical)",
+    "remediationQuestion": "What is the correct defense against SQL Injection login bypass?",
+    "remediationOptions": [
+      "Block single quotes from input",
+      "Use parameterized queries (prepared statements)",
+      "Hash the username before querying",
+      "Add a CAPTCHA to the login form"
+    ],
+    "correctRemediation": 1,
+    "flag": "ETHIX{SQLI_LOGIN_BYPASS}",
+    "stars": 1,
+    "hints": [
+      "SQL treats single quotes as string delimiters. What happens if you put one inside the username field?",
+      "Try: ' OR '1'='1 in the username. This makes the WHERE clause always return true, bypassing the login."
+    ]
+  },
+  {
+    "id": "sqli_02",
+    "order": 2,
+    "tier": "Foundational",
+    "title": "The Comment Trick",
+    "category": "sqli",
+    "type": "sqli_auth",
+    "inputField": "username",
+    "scenario": "VulnShop Login Page",
+    "observeContent": "VulnShop's login query looks like: SELECT * FROM users WHERE username='[input]' AND password='[input]'. The password check might be neutralized using SQL comment syntax.",
+    "testInstruction": "In the Username field, enter the payload below. Leave the Password field blank. Click Log In.",
+    "testPayloadHint": "admin'--",
+    "payloads": ["admin'--", "admin'#", "admin' --", "' OR ''='"],
+    "identifyQuestion": "What technique did you use to bypass the password check?",
+    "identifyOptions": [
+      "Boolean-based blind SQL injection",
+      "Union-based SQL injection",
+      "SQL comment injection (--)",
+      "Time-based blind SQL injection"
+    ],
+    "identifyCorrect": 2,
+    "identifyExplanation": "The -- sequence comments out the rest of the SQL query, including the password verification. The database ignored the password condition entirely.",
+    "analyzeImpact": "Comment syntax can truncate queries, bypassing authentication. Attackers can use this even when the original query structure is unknown.",
+    "cvssScore": "9.8 (Critical)",
+    "remediationQuestion": "What does -- do in a SQL query?",
+    "remediationOptions": [
+      "It ends the query",
+      "It starts a single-line comment",
+      "It performs a logical OR",
+      "It concatenates strings"
+    ],
+    "correctRemediation": 1,
+    "flag": "ETHIX{SQLI_COMMENT_BYPASS}",
+    "stars": 1,
+    "hints": [
+      "Comments in SQL can cut off the rest of a query. Explore how to terminate the password check.",
+      "Try: admin'-- as the username. The double-dash comments out the password condition entirely."
+    ]
+  },
+  {
+    "id": "bac_01",
+    "order": 3,
+    "tier": "Foundational",
+    "title": "Who Owns This Order?",
+    "category": "bac",
+    "type": "idor",
+    "inputField": "order_id",
+    "scenario": "VulnShop Order Detail",
+    "observeContent": "You are logged into VulnShop as a regular customer. Your order history is at /orders/detail?id=88. The application may not verify order ownership before returning data.",
+    "testInstruction": "Change the order ID in the input to access a different user's order.",
+    "testPayloadHint": "1",
+    "payloads": ["1", "2", "5", "10", "50"],
+    "identifyQuestion": "What vulnerability did you just exploit?",
+    "identifyOptions": [
+      "SQL Injection",
+      "Cross-Site Request Forgery (CSRF)",
+      "Insecure Direct Object Reference (IDOR)",
+      "Privilege Escalation"
+    ],
+    "identifyCorrect": 2,
+    "identifyExplanation": "By changing the numeric ID in the URL, you accessed another user's order. The server returned data without verifying ownership.",
+    "analyzeImpact": "An attacker can enumerate IDs to harvest all orders, including sensitive customer information (names, addresses, phone numbers).",
+    "cvssScore": "7.5 (High)",
+    "remediationQuestion": "How should the server prevent IDOR on the order detail endpoint?",
+    "remediationOptions": [
+      "Hide the ID in a hidden form field",
+      "Verify that the order's customer_id matches the logged-in user",
+      "Use longer, unpredictable IDs",
+      "Encrypt the ID in the URL"
+    ],
+    "correctRemediation": 1,
+    "flag": "ETHIX{BAC_IDOR_ORDER}",
+    "stars": 1,
+    "hints": [
+      "Look at the order ID parameter. Is there a number that identifies your order? What if you changed it?",
+      "Try changing the order ID to 1. The server may not check if that order belongs to you."
+    ]
+  },
+  {
+    "id": "bac_phish_01",
+    "order": 4,
+    "tier": "Foundational",
+    "title": "The Urgent Verification Email",
+    "category": "bac",
+    "type": "phishing",
+    "inputField": "link_choice",
+    "scenario": "VulnShop Email Simulation",
+    "observeContent": "You receive an email claiming to be from VulnShop Support. The subject reads: 'URGENT: Your account will be suspended in 24 hours.' The sender is security@vulnshop-support.com but hovering the link shows http://vulnshop-verify.xyz.",
+    "testInstruction": "Inspect the email carefully. Identify the red flags before deciding to click.",
+    "testPayloadHint": "REPORT_PHISHING",
+    "payloads": ["REPORT_PHISHING", "report phishing", "phishing", "suspicious", "fake"],
+    "identifyQuestion": "What type of attack is this?",
+    "identifyOptions": [
+      "Spear phishing",
+      "Smishing (SMS phishing)",
+      "Phishing (email)",
+      "Vishing (voice phishing)"
+    ],
+    "identifyCorrect": 2,
+    "identifyExplanation": "The attacker created a fake login page masquerading as VulnShop to steal credentials. The domain mismatch and lack of HTTPS are red flags.",
+    "analyzeImpact": "If you enter real credentials, the attacker captures them and can log into your actual VulnShop account, make purchases, or steal payment information.",
+    "cvssScore": "8.2 (High)",
+    "remediationQuestion": "What is the most reliable way to avoid falling for this phishing attack?",
+    "remediationOptions": [
+      "Never click any link in any email",
+      "Always check the URL in the address bar before entering credentials",
+      "Use a password manager",
+      "Report the email to IT after clicking"
+    ],
+    "correctRemediation": 1,
+    "flag": "ETHIX{PHISH_URL_SPOOF}",
+    "stars": 1,
+    "hints": [
+      "Check the sender's domain and hover over links before clicking. Are they the real VulnShop domain?",
+      "The link domain is vulnshop-verify.xyz — not vulnshop.com. Type REPORT_PHISHING to flag it correctly."
+    ]
+  },
+  {
+    "id": "bac_02",
+    "order": 5,
+    "tier": "Foundational",
+    "title": "The Hidden Admin Panel",
+    "category": "bac",
+    "type": "forced_browsing",
+    "inputField": "url_path",
+    "scenario": "VulnShop Navigation",
+    "observeContent": "You are logged in as a regular user. No admin links appear in your navigation. However, the admin dashboard may be accessible via a direct URL without role verification.",
+    "testInstruction": "Try accessing the admin dashboard by entering its direct path.",
+    "testPayloadHint": "/admin/dashboard",
+    "payloads": ["/admin/dashboard", "/admin", "/admin/users", "admin/dashboard", "admin"],
+    "identifyQuestion": "What vulnerability allowed you to access the admin panel?",
+    "identifyOptions": [
+      "IDOR",
+      "Forced browsing (direct page access)",
+      "Role parameter tampering",
+      "SQL Injection"
+    ],
+    "identifyCorrect": 1,
+    "identifyExplanation": "The server rendered the admin dashboard purely based on the URL, without checking whether your session actually has admin privileges.",
+    "analyzeImpact": "Security through obscurity (hiding links) is not access control. Any user who guesses the admin URL can access privileged functions.",
+    "cvssScore": "8.2 (High)",
+    "remediationQuestion": "What is the correct way to protect admin pages?",
+    "remediationOptions": [
+      "Change the admin URL every week",
+      "Add server-side role verification for every admin route",
+      "Only show admin links to admins",
+      "Use a secret query parameter"
+    ],
+    "correctRemediation": 1,
+    "flag": "ETHIX{BAC_ADMIN_URL_ACCESS}",
+    "stars": 1,
+    "hints": [
+      "Does the application check your role when you navigate to /admin? Try going there directly.",
+      "Try entering /admin/dashboard in the URL bar. If the page loads without admin credentials, forced browsing succeeded."
+    ]
+  },
+  {
+    "id": "sqli_06",
+    "order": 6,
+    "tier": "Intermediate",
+    "title": "Retrieving Hidden Records",
+    "category": "sqli",
+    "type": "sqli_union",
+    "inputField": "search",
+    "scenario": "VulnShop Product Search",
+    "observeContent": "VulnShop's product search returns three columns: product_name, price, description. The users table has columns: username, password_hash, email. You need to construct a UNION-based SQL Injection payload.",
+    "testInstruction": "In the product search field, enter the UNION payload to extract user credentials.",
+    "testPayloadHint": "' UNION SELECT username, password_hash, email FROM users--",
+    "payloads": [
+      "' UNION SELECT username, password_hash, email FROM users--",
+      "' UNION SELECT username, password FROM users--",
+      "1' UNION SELECT username, password_hash, email FROM users--",
+      "' UNION SELECT null, null, null--",
+      "' UNION SELECT table_name, null, null FROM information_schema.tables--"
+    ],
+    "identifyQuestion": "What type of SQL Injection did you perform?",
+    "identifyOptions": [
+      "Boolean-based blind",
+      "Time-based blind",
+      "Error-based",
+      "UNION-based"
+    ],
+    "identifyCorrect": 3,
+    "identifyExplanation": "You appended a second SELECT statement using UNION, merging results from the users table into the product search output.",
+    "analyzeImpact": "UNION-based injection allows extraction of any data the database user has access to — including sensitive tables.",
+    "cvssScore": "8.6 (High)",
+    "remediationQuestion": "Why must the UNION SELECT have the same number of columns as the original query?",
+    "remediationOptions": [
+      "To avoid syntax errors",
+      "To ensure the results can be merged",
+      "To prevent data corruption",
+      "To bypass the WHERE clause"
+    ],
+    "correctRemediation": 1,
+    "flag": "ETHIX{SQLI_UNION_EXTRACTION}",
+    "stars": 2,
+    "hints": [
+      "UNION allows you to attach a second SELECT statement. The column count must match the original query.",
+      "Try: ' UNION SELECT null-- and keep adding nulls until no error. Then replace with username, password_hash, email."
+    ]
+  },
+  {
+    "id": "bac_03",
+    "order": 7,
+    "tier": "Intermediate",
+    "title": "Someone Else's Profile",
+    "category": "bac",
+    "type": "idor",
+    "inputField": "user_id",
+    "scenario": "VulnShop User Profile",
+    "observeContent": "User profiles are accessible at /profile?user_id=X. You are logged in as user_id=124. The application may return any profile without verifying ownership.",
+    "testInstruction": "Change the user_id to access the admin's profile.",
+    "testPayloadHint": "1",
+    "payloads": ["1", "2", "0", "3"],
+    "identifyQuestion": "What vulnerability does this demonstrate?",
+    "identifyOptions": [
+      "SQL Injection",
+      "Insecure Direct Object Reference (IDOR)",
+      "Cross-Site Scripting (XSS)",
+      "Command Injection"
+    ],
+    "identifyCorrect": 1,
+    "identifyExplanation": "Changing the user_id parameter exposed another user's private profile. The server did not check if the logged-in user owns that profile.",
+    "analyzeImpact": "An attacker can enumerate IDs to harvest the entire customer database.",
+    "cvssScore": "7.5 (High)",
+    "remediationQuestion": "How can the server prevent IDOR on user profiles?",
+    "remediationOptions": [
+      "Use random GUIDs instead of sequential IDs",
+      "Check that the requested user_id matches the logged-in user's ID",
+      "Require a CAPTCHA before each profile view",
+      "Encrypt the user_id in the URL"
+    ],
+    "correctRemediation": 1,
+    "flag": "ETHIX{BAC_IDOR_PROFILE}",
+    "stars": 2,
+    "hints": [
+      "Look at the URL carefully. Is there a number that identifies your account? What if you changed it?",
+      "Try changing ?user_id=124 to ?user_id=1. If the server returns another user's data, that is IDOR."
+    ]
+  },
+  {
+    "id": "bac_04",
+    "order": 8,
+    "tier": "Intermediate",
+    "title": "Changing Your Own Role",
+    "category": "bac",
+    "type": "priv_esc",
+    "inputField": "url_param",
+    "scenario": "VulnShop Home Page",
+    "observeContent": "VulnShop passes the user's role as a URL parameter on every page request: /home?role=user. The server appears to trust this value without verification.",
+    "testInstruction": "Modify the role parameter in the URL to escalate your privileges.",
+    "testPayloadHint": "?role=admin",
+    "payloads": ["?role=admin", "role=admin", "&role=admin", "?role=administrator", "?is_admin=true", "?is_admin=1"],
+    "identifyQuestion": "What vulnerability allows you to become admin?",
+    "identifyOptions": [
+      "IDOR",
+      "Forced browsing",
+      "Role parameter tampering",
+      "Session fixation"
+    ],
+    "identifyCorrect": 2,
+    "identifyExplanation": "The server accepted the role value from the URL without checking your actual session permissions. You escalated your privileges by modifying a client-controlled parameter.",
+    "analyzeImpact": "Privilege information should never come from client-controlled data. The server must derive the user's role from the session.",
+    "cvssScore": "8.2 (High)",
+    "remediationQuestion": "Where should the user's role be stored to prevent tampering?",
+    "remediationOptions": [
+      "In a URL parameter",
+      "In a hidden form field",
+      "In the server-side session associated with the authenticated user",
+      "In a client-side cookie"
+    ],
+    "correctRemediation": 2,
+    "flag": "ETHIX{BAC_ROLE_TAMPERING}",
+    "stars": 2,
+    "hints": [
+      "The server might trust parameters it receives — even ones a normal user should not be able to set.",
+      "Try appending ?role=admin to the URL. If the server accepts it, you have escalated your own privilege."
+    ]
+  },
+  {
+    "id": "bac_phish_02",
+    "order": 9,
+    "tier": "Intermediate",
+    "title": "The Fake Order Confirmation",
+    "category": "bac",
+    "type": "phishing",
+    "inputField": "action_choice",
+    "scenario": "VulnShop Email Simulation",
+    "observeContent": "You receive an email appearing to be an order confirmation from VulnShop: 'Thank you for your purchase of an iPhone 15 Pro. If you did not make this order, click here to cancel.' The email looks professional and includes a real-looking order number. Your name is not used — it addresses you as 'Dear Customer.'",
+    "testInstruction": "Identify the correct response to this suspicious email.",
+    "testPayloadHint": "CHECK_OFFICIAL_SITE",
+    "payloads": ["CHECK_OFFICIAL_SITE", "check official site", "go to official site", "open browser", "verify directly"],
+    "identifyQuestion": "What type of attack is this?",
+    "identifyOptions": [
+      "Vishing",
+      "Smishing",
+      "Spear phishing",
+      "Generic phishing (mass)"
+    ],
+    "identifyCorrect": 3,
+    "identifyExplanation": "The email uses urgency and a fake order to trick victims into clicking a malicious link. It is not personalized, so it is a mass phishing campaign.",
+    "analyzeImpact": "Attackers use fake order confirmations to create urgency and fear. Victims act quickly and may ignore security checks.",
+    "cvssScore": "7.8 (High)",
+    "remediationQuestion": "What should you do first when you receive an unexpected order confirmation email?",
+    "remediationOptions": [
+      "Click the cancellation link immediately",
+      "Forward the email to a friend for advice",
+      "Open a new browser window and type the official VulnShop URL directly, then check your order history",
+      "Reply to the email asking for more details"
+    ],
+    "correctRemediation": 2,
+    "flag": "ETHIX{PHISH_ORDER_SCAM}",
+    "stars": 2,
+    "hints": [
+      "Notice the email says 'Dear Customer' — a real VulnShop email would use your name. This is a mass phishing attempt.",
+      "Never click links in suspicious emails. Open a new browser window and navigate to the official site directly. Type CHECK_OFFICIAL_SITE."
+    ]
+  },
+  {
+    "id": "bac_05",
+    "order": 10,
+    "tier": "Intermediate",
+    "title": "The Backup File Leak",
+    "category": "bac",
+    "type": "forced_browsing",
+    "inputField": "url_path",
+    "scenario": "VulnShop File System",
+    "observeContent": "You discover that VulnShop stores a backup file in a publicly accessible directory. The file is not linked from any page, but you can guess its name.",
+    "testInstruction": "Try accessing the backup file by guessing its direct path.",
+    "testPayloadHint": "/backup/db.sql",
+    "payloads": ["/backup/db.sql", "backup/db.sql", "/backup/database.sql", "/backup/dump.sql", "/backup/vulnshop.sql"],
+    "identifyQuestion": "What vulnerability allowed you to download the backup?",
+    "identifyOptions": [
+      "IDOR",
+      "Forced browsing (direct file access)",
+      "Path traversal",
+      "SQL Injection"
+    ],
+    "identifyCorrect": 1,
+    "identifyExplanation": "The file was stored in a publicly accessible directory with no authentication, and you guessed its name.",
+    "analyzeImpact": "Attackers can discover and download sensitive files through forced browsing if directories are not properly secured.",
+    "cvssScore": "9.1 (Critical)",
+    "remediationQuestion": "How should sensitive files like backups be protected?",
+    "remediationOptions": [
+      "Use a long, random filename",
+      "Store them outside the web root and restrict access by IP",
+      "Compress the file with a password",
+      "Only allow access from localhost"
+    ],
+    "correctRemediation": 1,
+    "flag": "ETHIX{BAC_FORCED_BROWSING_BACKUP}",
+    "stars": 2,
+    "hints": [
+      "The backup file is stored in a predictable location. Try guessing the path in the URL bar.",
+      "Try /backup/db.sql — if the server serves it without authentication, forced browsing has succeeded."
+    ]
+  },
+  {
+    "id": "sqli_11",
+    "order": 11,
+    "tier": "Advanced",
+    "title": "Chain of Exploitation – SQLi + IDOR",
+    "category": "sqli",
+    "type": "sqli_union",
+    "inputField": "search",
+    "scenario": "VulnShop Product Search + Order Detail",
+    "observeContent": "VulnShop has two vulnerabilities: a UNION-based SQLi in the product search (which can leak user IDs) and an IDOR in the order detail endpoint. Your mission is to combine them: use SQLi to extract user IDs, then use IDOR to access their orders.",
+    "testInstruction": "First use the UNION injection to extract user IDs. Then use one of those IDs in the order endpoint.",
+    "testPayloadHint": "' UNION SELECT id, username, email FROM users--",
+    "payloads": [
+      "' UNION SELECT id, username, email FROM users--",
+      "' UNION SELECT user_id, username, null FROM users--",
+      "' UNION SELECT id, username, password_hash FROM users--",
+      "1' UNION SELECT id, username, email FROM users--"
+    ],
+    "identifyQuestion": "What type of attack is this combination called?",
+    "identifyOptions": [
+      "Chained vulnerabilities",
+      "Privilege escalation",
+      "Cross-site scripting",
+      "Race condition"
+    ],
+    "identifyCorrect": 0,
+    "identifyExplanation": "You used SQLi to leak IDs, then IDOR to access those users' orders. Chaining multiple vulnerabilities multiplies the impact.",
+    "analyzeImpact": "A seemingly low-risk SQLi that only exposes IDs becomes a mass data breach when combined with an IDOR that lacks ownership checks.",
+    "cvssScore": "9.3 (Critical)",
+    "remediationQuestion": "What is the correct remediation strategy for this chained attack?",
+    "remediationOptions": [
+      "Fix only the SQLi and leave IDOR unchanged",
+      "Fix only the IDOR and leave SQLi unchanged",
+      "Fix both vulnerabilities: parameterize all queries AND enforce ownership checks",
+      "Add a WAF to block the SQLi payloads"
+    ],
+    "correctRemediation": 2,
+    "flag": "ETHIX{CHAIN_SQLI_IDOR}",
+    "stars": 3,
+    "hints": [
+      "UNION injection can pull any column from any table. Target the users table to get IDs, then use those IDs in the orders endpoint.",
+      "Try: ' UNION SELECT id, username, email FROM users-- in the search. Then test the extracted IDs in the order detail endpoint."
+    ]
+  },
+  {
+    "id": "bac_chain_01",
+    "order": 12,
+    "tier": "Advanced",
+    "title": "Admin + IDOR Chain",
+    "category": "bac",
+    "type": "priv_esc",
+    "inputField": "url_param",
+    "scenario": "VulnShop Admin Panel",
+    "observeContent": "VulnShop's admin panel has a hidden endpoint /admin/all_orders that lists every order. You cannot access it as a normal user, but you have already discovered role tampering. Your mission is to use role tampering to gain admin access, then exploit IDOR on the all_orders endpoint.",
+    "testInstruction": "First escalate your role to admin via URL parameter, then navigate to the admin orders endpoint.",
+    "testPayloadHint": "?role=admin",
+    "payloads": ["?role=admin", "role=admin", "&role=admin", "?is_admin=true", "?is_admin=1"],
+    "identifyQuestion": "What chain of vulnerabilities did you use?",
+    "identifyOptions": [
+      "IDOR → SQLi",
+      "Role tampering → forced browsing",
+      "Role tampering → IDOR",
+      "Forced browsing → IDOR"
+    ],
+    "identifyCorrect": 2,
+    "identifyExplanation": "You first tampered the role parameter to become admin, then accessed the admin-only endpoint, which gave you access to all orders (a form of IDOR).",
+    "analyzeImpact": "Two Broken Access Control flaws combined: role tampering bypasses initial authorization, and missing checks on the admin panel give complete control.",
+    "cvssScore": "9.3 (Critical)",
+    "remediationQuestion": "How should the application prevent this chained attack?",
+    "remediationOptions": [
+      "Remove the role parameter entirely",
+      "Check role only on the admin panel",
+      "Store role server-side AND verify role on every privileged endpoint",
+      "Use a different URL for the admin panel every week"
+    ],
+    "correctRemediation": 2,
+    "flag": "ETHIX{CHAIN_ROLE_IDOR}",
+    "stars": 3,
+    "hints": [
+      "You already know how to tamper the role parameter. Use that first, then navigate to /admin/all_orders.",
+      "Step 1: Add ?role=admin to your URL. Step 2: Navigate to /admin/all_orders. Both steps must succeed."
+    ]
+  },
+  {
+    "id": "bac_phish_03",
+    "order": 13,
+    "tier": "Advanced",
+    "title": "Spear Phishing – Targeted Email Attack",
+    "category": "bac",
+    "type": "phishing",
+    "inputField": "action_choice",
+    "scenario": "VulnShop HR Email Simulation",
+    "observeContent": "You receive a personalized email that appears to come from VulnShop's HR department. It includes your real name, your employee ID, and a link to 'update your payroll information.' The link points to http://vulnshop-hr.net.",
+    "testInstruction": "Identify what makes this attack more dangerous than a regular phishing email, then report it correctly.",
+    "testPayloadHint": "VERIFY_TRUSTED_CHANNEL",
+    "payloads": ["VERIFY_TRUSTED_CHANNEL", "verify trusted channel", "call hr directly", "verify through hr", "contact hr"],
+    "identifyQuestion": "What type of phishing attack is this?",
+    "identifyOptions": [
+      "Smishing",
+      "Vishing",
+      "Spear phishing",
+      "Whaling"
+    ],
+    "identifyCorrect": 2,
+    "identifyExplanation": "The email uses your personal information (name, employee ID) to appear trustworthy and targets you specifically.",
+    "analyzeImpact": "Spear phishing is harder to detect because it contains accurate personal details. Attackers can bypass multi-factor authentication if victims enter OTPs on the fake page.",
+    "cvssScore": "8.9 (High)",
+    "remediationQuestion": "What is the most effective defense against spear phishing?",
+    "remediationOptions": [
+      "Rely on spam filters",
+      "Use complex passwords",
+      "Treat any unsolicited request for credentials with suspicion and verify through a trusted channel",
+      "Disable HTML email"
+    ],
+    "correctRemediation": 2,
+    "flag": "ETHIX{SPEAR_PHISHING}",
+    "stars": 3,
+    "hints": [
+      "This email knows your name and employee ID — that makes it spear phishing. But the domain vulnshop-hr.net is fake.",
+      "Never update credentials from an email link, even if it looks personal. Contact HR directly through the official channel. Type VERIFY_TRUSTED_CHANNEL."
+    ]
+  },
+  {
+    "id": "bac_06",
+    "order": 14,
+    "tier": "Advanced",
+    "title": "Batch IDOR Harvest",
+    "category": "bac",
+    "type": "idor",
+    "inputField": "batch_ids",
+    "scenario": "VulnShop Batch API",
+    "observeContent": "VulnShop added a new feature to let users view multiple orders at once via an API endpoint: /api/orders/batch?ids=1001,1002,1003. The endpoint returns all requested orders regardless of ownership.",
+    "testInstruction": "Send a batch request with IDs that belong to other users.",
+    "testPayloadHint": "1,2,3,4,5",
+    "payloads": ["1,2,3,4,5", "1,2,3", "1,2,3,4,5,6,7,8,9,10", "1001,1,2,3"],
+    "identifyQuestion": "What vulnerability is this?",
+    "identifyOptions": [
+      "Single IDOR",
+      "Batch IDOR",
+      "SQL Injection",
+      "Mass assignment"
+    ],
+    "identifyCorrect": 1,
+    "identifyExplanation": "The API endpoint allows retrieving multiple objects in one request and fails to validate ownership for any of them. This is an amplified version of IDOR.",
+    "analyzeImpact": "Batch IDOR amplifies the impact of traditional IDOR. An attacker can retrieve hundreds of orders in one API call.",
+    "cvssScore": "8.8 (High)",
+    "remediationQuestion": "How should the application secure the batch API endpoint?",
+    "remediationOptions": [
+      "Limit the batch size to 5 IDs",
+      "Require an API key in addition to the session token",
+      "Validate each ID against the session user ID, and return only those that the user owns",
+      "Use POST instead of GET"
+    ],
+    "correctRemediation": 2,
+    "flag": "ETHIX{BATCH_IDOR}",
+    "stars": 3,
+    "hints": [
+      "The batch endpoint doesn't check who owns each order. Try requesting IDs that don't belong to you.",
+      "Enter IDs like 1,2,3,4,5 to request multiple orders. The server will return all of them without checking ownership."
+    ]
+  },
+  {
+    "id": "capstone_15",
+    "order": 15,
+    "tier": "Advanced",
+    "title": "The Full VulnShop Audit",
+    "category": "combo",
+    "type": "sqli_auth",
+    "inputField": "username",
+    "scenario": "VulnShop Full Security Audit",
+    "observeContent": "You have been appointed as the lead ethical hacker for a full security audit of VulnShop. Your goal is to demonstrate all vulnerability types: SQL Injection (login bypass and UNION extraction), broken access control (IDOR, forced browsing, role tampering, and phishing awareness).",
+    "testInstruction": "Begin the audit by demonstrating the most foundational exploit: login bypass via SQL Injection.",
+    "testPayloadHint": "' OR '1'='1",
+    "payloads": [
+      "' OR '1'='1", "' OR 1=1--", "admin'--", "admin'#",
+      "' OR '1'='1'--", "' UNION SELECT username, password_hash, email FROM users--",
+      "' UNION SELECT id, username, email FROM users--"
+    ],
+    "identifyQuestion": "What is the overarching category of all these vulnerabilities?",
+    "identifyOptions": [
+      "Cryptographic failures",
+      "Input validation and access control flaws",
+      "Configuration errors",
+      "Denial of service"
+    ],
+    "identifyCorrect": 1,
+    "identifyExplanation": "SQLi results from improper input handling; IDOR, forced browsing, and role tampering result from missing access controls. Together they constitute the two main problem areas your capstone addresses.",
+    "analyzeImpact": "The combined impact of these vulnerabilities is catastrophic: an attacker could take over any account, steal all customer data, modify products, and escalate privileges to admin.",
+    "cvssScore": "10.0 (Critical)",
+    "remediationQuestion": "What is the single most important architectural change that would collectively prevent all these vulnerabilities?",
+    "remediationOptions": [
+      "Use a Web Application Firewall (WAF)",
+      "Switch to a different programming language",
+      "Treat all user input as untrusted, use parameterized queries for database access, and enforce server-side authorization on every action",
+      "Reduce the number of features in the application"
+    ],
+    "correctRemediation": 2,
+    "flag": "ETHIX{COMPLETE_AUDIT}",
+    "stars": 3,
+    "hints": [
+      "This is the capstone — apply everything you have learned. Start with the most foundational exploit: login bypass.",
+      "Try ' OR '1'='1 to bypass login. This demonstrates that you understand the core SQLi vulnerability that started your journey."
+    ]
+  }
+]

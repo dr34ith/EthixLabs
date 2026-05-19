@@ -5,13 +5,11 @@ import 'package:test_vuln/main/mission.dart';
 import 'package:test_vuln/main/notification.dart';
 import 'package:test_vuln/main/profilescreen.dart';
 import 'package:test_vuln/main/shop.dart';
-import 'package:test_vuln/main/settings.dart';
+import 'package:test_vuln/main/vulnbot.dart';
 import 'package:test_vuln/theme/cyber_theme.dart';
-/*import 'vulnbot_screen.dart';
-import 'shop_screen.dart'; */
+
 class MainLayout extends StatefulWidget {
   const MainLayout({Key? key}) : super(key: key);
-
   @override
   State<MainLayout> createState() => _MainLayoutState();
 }
@@ -19,89 +17,45 @@ class MainLayout extends StatefulWidget {
 class _MainLayoutState extends State<MainLayout> {
   int _selectedIndex = 0;
 
-  /*final List<Widget> _pages = [
-  const VulnBotScreen(),   // Your existing VulnBot screen
-  ];
-  */
-
-  // For now, just placeholders to avoid errors
   final List<Widget> _pages = [
-    const DashboardScreen(), // Home screen will go here
-    const MissionsScreen(), // Missions screen will go here
-    Container(), // VulnBot screen will go here
-    const LibraryScreen(), // Library screen will go here
-  const ShopScreen(),   // Shop screen will go here
+    const DashboardScreen(),
+    const MissionsScreen(),
+    const VulnBotScreen(),
+    const LibraryScreen(),
+    const ShopScreen(),
   ];
 
-  void _onItemTapped(int index) {
-    setState(() {
-      _selectedIndex = index;
-    });
-  }
+  void _onItemTapped(int index) => setState(() => _selectedIndex = index);
 
   @override
   Widget build(BuildContext context) {
+    final isVulnBot = _selectedIndex == 2;
+
     return Scaffold(
-      // ========== APPBAR ==========
-      appBar: AppBar(
+      appBar: isVulnBot ? null : AppBar(
         automaticallyImplyLeading: false,
-        title: Row(
-          children: [
-            // Logo
-            Image.asset(
-              'assets/icons/EthixLabs_LOGO.png',
-              height: 120,
-              width: 120,
-              errorBuilder: (context, error, stackTrace) {
-                return const Icon(Icons.apps, size: 40);
-              },
-            ),
-            const SizedBox(width: 8),
-          ],
-        ),
+        title: Image.asset('assets/icons/EthixLabs_LOGO.png', height: 120, width: 120,
+          errorBuilder: (_, __, ___) => const Icon(Icons.apps, size: 40)),
         actions: [
-          // Notification icon with badge
-          Stack(
-            children: [
-              IconButton(
-                icon: const Icon(Icons.notifications_outlined),
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => const NotificationScreen()),
-                  );
-                },
-              ),
-            ],
-          ),
-          // Profile icon
+          IconButton(
+            icon: const Icon(Icons.notifications_outlined),
+            onPressed: () => Navigator.push(context,
+              MaterialPageRoute(builder: (_) => const NotificationScreen()))),
           IconButton(
             icon: const Icon(Icons.person_outline),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const ProfileScreen()),
-              );
-            },
-          ),
+            onPressed: () => Navigator.push(context,
+              MaterialPageRoute(builder: (_) => const ProfileScreen()))),
         ],
         backgroundColor: CyberTheme.navigationBackground,
         elevation: 2,
-        foregroundColor: Colors.white,
-      ),
+        foregroundColor: Colors.white),
 
-      // ========== BODY WITH BACKGROUND IMAGE ==========
       body: Container(
         decoration: const BoxDecoration(
           image: DecorationImage(
-            image: AssetImage('assets/images/bg3_noLogo.jpg'),
-            fit: BoxFit.cover,
-          ),
-        ),
-        child: _pages[_selectedIndex],
-      ),
+            image: AssetImage('assets/images/bg3_noLogo.jpg'), fit: BoxFit.cover)),
+        child: _pages[_selectedIndex]),
 
-      // ========== BOTTOM NAVIGATION BAR ==========
       bottomNavigationBar: BottomNavigationBar(
         type: BottomNavigationBarType.fixed,
         currentIndex: _selectedIndex,
@@ -112,39 +66,15 @@ class _MainLayoutState extends State<MainLayout> {
         backgroundColor: CyberTheme.navigationBackground,
         elevation: 8,
         items: [
+          const BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
+          const BottomNavigationBarItem(icon: Icon(Icons.assignment), label: 'Missions'),
           BottomNavigationBarItem(
-            icon: Icon(Icons.home),
-            label: 'Home',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.assignment),
-            label: 'Missions',
-          ),
-          BottomNavigationBarItem(
-            icon: Image.asset(
-              'assets/icons/VulnbotAI_LOGO.png',
-              width: 54,
-              height: 54,
-            ),
-            label: 'VulnBot',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.library_books),
-            label: 'Library',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.shopping_cart),
-            label: 'Shop',
-          ),
-        ],
-      ),
-    );
-  }
-  Widget buildAppBarIcon(IconData icon, VoidCallback onPressed) {
-    return IconButton(
-      icon: Icon(icon, size: 60, color: Colors.white),
-      splashRadius: 24,
-      onPressed: onPressed,
+            icon: Image.asset('assets/icons/VulnbotAI_LOGO.png', width: 54, height: 54,
+              errorBuilder: (_, __, ___) => const Icon(Icons.smart_toy_outlined)),
+            label: 'VulnBot'),
+          const BottomNavigationBarItem(icon: Icon(Icons.library_books), label: 'Library'),
+          const BottomNavigationBarItem(icon: Icon(Icons.shopping_cart), label: 'Shop'),
+        ]),
     );
   }
 }

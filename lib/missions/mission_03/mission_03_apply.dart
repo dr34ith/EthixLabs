@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:test_vuln/services/hive_service.dart';
 import 'package:test_vuln/missions/step_layout.dart';
 import 'package:test_vuln/main/main_layout.dart';
 
@@ -101,8 +102,9 @@ class _Mission03ApplyState extends State<Mission03Apply> {
     );
   }
 
-  void _completeMission() {
+  void _completeMission() async {
     if (!_flagShown) {
+      await HiveService.completeMission('bac_01', stars: 1);
       setState(() {
         _flagShown = true;
       });
