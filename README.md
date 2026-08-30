@@ -118,10 +118,9 @@ lib/features/flashcards/
 </tr>
 </table>
 
-*Idea of the app and design development by Andrea. (Already enhanced the Front-end)*
+*Idea of the app and design development by Andrea.*
 
 Source link : https://www.figma.com/design/poJrJxqeDzXQum54O3UVep/EthixLabs?node-id=0-1&p=f&t=d5wBT9SCcrYUUTxs-0
-
 
 ## Disclaimer
 
@@ -135,6 +134,9 @@ This project was inspired by, and developed with reference to, industry-standard
 - [PortSwigger Web Security Academy](https://portswigger.net/web-security)
 - [HackTheBox Academy](https://academy.hackthebox.com)
 - [OWASP Foundation](https://owasp.org)
+
+## Collaboarators
+Andrea C. <br> Jeannilyn B. <br> Lorenzo S.
 
 ## License
 
