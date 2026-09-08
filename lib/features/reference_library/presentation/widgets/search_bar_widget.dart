@@ -43,10 +43,13 @@ class _SearchBarWidgetState extends State<SearchBarWidget> {
     return Container(
       height: 48,
       decoration: BoxDecoration(
-        color: const Color(0xFF1A1A2E),
+        color: const Color(0xFF1A1A1A), // dark charcoal, was bluish-purple
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: _isFocused ? kLibraryCrimson : const Color(0xFF2A2A3E),
+          color: _isFocused
+              ? kLibraryCrimson
+              : kLibraryCrimson.withOpacity(0.28), // subtle red at rest
+          width: _isFocused ? 1.4 : 1,
         ),
       ),
       child: TextField(

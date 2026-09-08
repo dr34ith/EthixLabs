@@ -2,15 +2,20 @@ import 'package:flutter/material.dart';
 
 import '../../domain/reference_card.dart';
 import '../../../../core/utils/platform_safe.dart';
+import '../../../../core/theme/app_colors.dart';
 
-const Color kLibraryCrimson = Color(0xFF8B0000);
-const Color kLibraryNavy = Color(0xFF0A0A1A);
-const Color kLibraryGold = Color(0xFFB8860B);
+// Recolored to match the app's actual reddish theme (AppColors) instead of
+// the old blue-navy palette. These stay as the shared names other library
+// widgets already import, so this one change re-themes the whole section.
+const Color kLibraryCrimson = AppColors.crimsonBright; // was 0xFF8B0000 (dull)
+const Color kLibraryNavy = AppColors.bgCard;            // was 0xFF0A0A1A (navy)
+const Color kLibraryGold = AppColors.goldBright;        // was 0xFFB8860B (dull)
 
 /// The single unified card design used for every Reference Library entry
-/// (including Payloads). Icon + title/category/description/metadata row,
-/// a bookmark heart, and a chevron — matching the premium design used by
-/// the Payloads screen's own detail content.
+/// (including Payloads). Compact horizontal layout: fixed 80x80 icon tile
+/// on the left, title/description/metadata on the right. Deliberately NOT
+/// an image-banner card — that read as a big empty dark block, this is
+/// denser and scans faster in a list.
 class LibraryCard extends StatefulWidget {
   final ReferenceCard card;
   final bool isRead;
@@ -81,128 +86,149 @@ class _LibraryCardState extends State<LibraryCard>
         scale: _scale,
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 120),
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(14),
           decoration: BoxDecoration(
-            gradient: const LinearGradient(
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-              colors: [Color(0xFF1A1A2E), Color(0xFF12121F)],
-            ),
+            gradient: AppColors.cardGradient, // reddish, matches dashboard
             borderRadius: BorderRadius.circular(16),
-            border: Border(
-              top: const BorderSide(color: Color(0xFF2A2A3E)),
-              right: const BorderSide(color: Color(0xFF2A2A3E)),
-              bottom: const BorderSide(color: Color(0xFF2A2A3E)),
-              left: BorderSide(
-                color: _pressed ? kLibraryCrimson : const Color(0xFF2A2A3E),
-                width: _pressed ? 4 : 1,
-              ),
+            border: Border.all(
+              color: _pressed ? kLibraryCrimson : AppColors.borderSubtle,
+              width: _pressed ? 1.6 : 1,
             ),
-            boxShadow: const [
+            boxShadow: [
               BoxShadow(
-                color: Color(0x33000000),
-                offset: Offset(0, 2),
-                blurRadius: 8,
+                color: _pressed
+                    ? kLibraryCrimson.withOpacity(0.18)
+                    : const Color(0x33000000),
+                offset: const Offset(0, 2),
+                blurRadius: _pressed ? 14 : 8,
               ),
             ],
           ),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              // Fixed 80x80 icon tile — red-to-black gradient so the emoji
+              // pops without ever looking like a missing/broken image.
               Container(
-                width: 48,
-                height: 48,
+                width: 80,
+                height: 80,
                 alignment: Alignment.center,
                 decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: kLibraryCrimson.withOpacity(0.15),
+                  borderRadius: BorderRadius.circular(14),
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [
+                      kLibraryCrimson.withOpacity(0.32),
+                      Colors.black.withOpacity(0.55),
+                    ],
+                  ),
+                  border: Border.all(color: kLibraryCrimson.withOpacity(0.3)),
                 ),
-                child: Text(card.icon, style: const TextStyle(fontSize: 24)),
+                child: Text(card.icon, style: const TextStyle(fontSize: 30)),
               ),
               const SizedBox(width: 14),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      card.title,
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      ),
+                    // Title on the left, small category pill up top-right.
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(
+                          child: Text(
+                            card.title,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              fontSize: 15.5,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                              height: 1.25,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 8, vertical: 3),
+                          decoration: BoxDecoration(
+                            color: kLibraryCrimson.withOpacity(0.14),
+                            borderRadius: BorderRadius.circular(20),
+                            border: Border.all(
+                                color: kLibraryCrimson.withOpacity(0.4)),
+                          ),
+                          child: Text(
+                            card.categoryLabel.toUpperCase(),
+                            style: TextStyle(
+                              fontSize: 9.5,
+                              fontWeight: FontWeight.w700,
+                              letterSpacing: 0.4,
+                              color: kLibraryCrimson,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
-                    const SizedBox(height: 4),
-                    Text(
-                      card.categoryLabel.toUpperCase(),
-                      style: const TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                        color: kLibraryCrimson,
-                        letterSpacing: 0.5,
-                      ),
-                    ),
-                    const SizedBox(height: 6),
+                    const SizedBox(height: 5),
                     Text(
                       card.description,
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                        fontSize: 13,
-                        color: Color(0xFFB0B0C0),
+                      style: TextStyle(
+                        fontSize: 12.5,
+                        color: AppColors.textMuted,
                         height: 1.4,
                       ),
                     ),
                     const SizedBox(height: 8),
+                    // Metadata row: time + read status grouped on the
+                    // left, bookmark heart anchored bottom-right — all on
+                    // one baseline so the row reads as a single unit.
                     Row(
                       children: [
-                        const Icon(Icons.access_time,
-                            size: 12, color: Color(0xFF8E8E9E)),
+                        Icon(Icons.access_time,
+                            size: 12, color: AppColors.textFaint),
                         const SizedBox(width: 4),
                         Text(
-                          '${card.readingMinutes} min',
-                          style: const TextStyle(
-                              fontSize: 11, color: Color(0xFF8E8E9E)),
+                          '${card.readingMinutes} min read',
+                          style: TextStyle(
+                              fontSize: 11.5, color: AppColors.textFaint),
                         ),
                         if (widget.isRead) ...[
-                          const SizedBox(width: 10),
+                          const SizedBox(width: 8),
                           const Icon(Icons.check_circle,
                               size: 12, color: Color(0xFF4CAF50)),
-                          const SizedBox(width: 4),
+                          const SizedBox(width: 3),
                           const Text(
                             'Read',
                             style: TextStyle(
-                                fontSize: 11, color: Color(0xFF4CAF50)),
+                                fontSize: 11.5,
+                                color: Color(0xFF4CAF50),
+                                fontWeight: FontWeight.w600),
                           ),
                         ],
+                        const Spacer(),
+                        GestureDetector(
+                          onTap: () {
+                            safeHapticImpact(HapticFeedbackType.selection);
+                            widget.onToggleBookmark();
+                          },
+                          child: Icon(
+                            widget.isBookmarked
+                                ? Icons.favorite
+                                : Icons.favorite_border,
+                            size: 18,
+                            color: widget.isBookmarked
+                                ? kLibraryGold
+                                : const Color(0xFF6E6E7E),
+                          ),
+                        ),
                       ],
                     ),
                   ],
                 ),
-              ),
-              const SizedBox(width: 8),
-              Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  GestureDetector(
-                    onTap: () {
-                      safeHapticImpact(HapticFeedbackType.selection);
-                      widget.onToggleBookmark();
-                    },
-                    child: Icon(
-                      widget.isBookmarked
-                          ? Icons.favorite
-                          : Icons.favorite_border,
-                      size: 18,
-                      color: widget.isBookmarked
-                          ? kLibraryGold
-                          : const Color(0xFF6E6E7E),
-                    ),
-                  ),
-                  const SizedBox(height: 14),
-                  const Icon(Icons.chevron_right,
-                      size: 20, color: Color(0xFF6E6E7E)),
-                ],
               ),
             ],
           ),

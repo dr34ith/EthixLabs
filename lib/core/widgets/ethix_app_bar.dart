@@ -22,8 +22,8 @@ class EthixAppBar extends StatelessWidget implements PreferredSizeWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: const BoxDecoration(
-        color: AppColors.bgPrimary,
-        border: Border(bottom: BorderSide(color: AppColors.borderSubtle, width: 1)),
+        color: Color(0xFF0D0005),
+        border: Border(bottom: BorderSide(color: Color(0xFF3A0A12), width: 1)),
       ),
       padding: const EdgeInsets.symmetric(horizontal: 16),
       height: 80,
@@ -32,7 +32,7 @@ class EthixAppBar extends StatelessWidget implements PreferredSizeWidget {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            const SizedBox(height: 56, child: EthixLabsLogo(width: 158)),
+            const SizedBox(height: 76, child: EthixLabsLogo(width: 180)),
             Row(
               children: [
                 IconButton(

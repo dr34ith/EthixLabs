@@ -95,7 +95,7 @@ class _ReferenceLibraryScreenState extends State<ReferenceLibraryScreen> {
                         SectionHeader(title: section.label),
                         for (final card in cards.where((c) => c.section == section))
                           Padding(
-                            padding: const EdgeInsets.only(bottom: 12),
+                            padding: const EdgeInsets.only(bottom: 14),
                             child: LibraryCard(
                               card: card,
                               isRead: controller.isRead(card.id),

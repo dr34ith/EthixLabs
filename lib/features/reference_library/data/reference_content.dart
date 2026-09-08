@@ -14,6 +14,7 @@ const List<ReferenceCard> referenceCards = [
     readingMinutes: 4,
     difficulty: 'Easy',
     section: ReferenceSection.foundations,
+    imageUrl: 'https://commons.wikimedia.org/wiki/Special:FilePath/Cybersecurity.png',
   ),
   ReferenceCard(
     id: 'three_hackers',
@@ -25,6 +26,8 @@ const List<ReferenceCard> referenceCards = [
     readingMinutes: 3,
     difficulty: 'Easy',
     section: ReferenceSection.foundations,
+    imageUrl:
+        'https://commons.wikimedia.org/wiki/Special:FilePath/Hacker-3342696_1920-1024x788.jpg',
   ),
   ReferenceCard(
     id: 'payloads',
@@ -59,6 +62,8 @@ const List<ReferenceCard> referenceCards = [
     readingMinutes: 6,
     difficulty: 'Easy',
     section: ReferenceSection.owaspAndTechniques,
+    imageUrl:
+        'https://commons.wikimedia.org/wiki/Special:FilePath/Cybersecurity%205-16%20(5734033339).jpg',
   ),
   ReferenceCard(
     id: 'glossary',
@@ -69,6 +74,8 @@ const List<ReferenceCard> referenceCards = [
     readingMinutes: 10,
     difficulty: 'Easy',
     section: ReferenceSection.reference,
+    imageUrl:
+        'https://commons.wikimedia.org/wiki/Special:FilePath/A%20Hacker%20Works%20at%20a%20COmputer%20in%20a%20Dark%20Room.png',
   ),
 ];
 
@@ -89,6 +96,8 @@ const String _ethicalHackingBody = '''
 Ethical hacking is the authorized practice of finding and exploiting weaknesses in computer systems, applications, and networks — with the goal of helping the owner fix those weaknesses before malicious attackers can abuse them.
 
 An Ethical Hacker uses the same tools and techniques as a criminal hacker, but operates within written permission, legal boundaries, and a professional code of conduct.
+
+![A security analyst reviewing systems for vulnerabilities — the daily work of an ethical hacker](https://commons.wikimedia.org/wiki/Special:FilePath/Cybersecurity.png)
 
 ## Why It Matters
 
@@ -127,6 +136,16 @@ Ethical hacking is a growing profession. Common roles include:
 - **Red Team Operator** — simulates advanced adversaries against enterprise environments
 
 Certifications commonly pursued: CompTIA Security+, eJPT, PNPT, OSCP, CRTP, and vendor-specific tracks like AWS Security Specialty.
+
+## Further Reading & Sources
+
+Every claim above is backed by a real, checkable source — tap any card to open it.
+
+>> OWASP Web Security Testing Guide (WSTG) | https://owasp.org/www-project-web-security-testing-guide/
+>> NIST SP 800-115 — Technical Guide to Security Testing | https://csrc.nist.gov/pubs/sp/800/115/final
+>> IBM Cost of a Data Breach Report 2024 | https://www.ibm.com/reports/data-breach
+>> RA 10175 — Cybercrime Prevention Act of 2012 (Official Gazette) | https://www.officialgazette.gov.ph/2012/09/12/republic-act-no-10175/
+>> OWASP Top 10:2025 | https://owasp.org/Top10/
 ''';
 
 const String _threeHackersBody = '''

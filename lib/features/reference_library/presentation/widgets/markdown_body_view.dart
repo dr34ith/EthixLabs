@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'library_card.dart' show kLibraryCrimson;
+import '../../../../core/theme/app_colors.dart';
 
 /// Renders the small subset of markdown actually used by
 /// reference_content.dart: `#`/`##`/`###` headings, `**bold**` inline
@@ -14,10 +15,13 @@ class MarkdownBodyView extends StatelessWidget {
 
   const MarkdownBodyView({Key? key, required this.markdown}) : super(key: key);
 
+  // Wider line-height + slightly larger size + softer white for less eye
+  // strain on long reads.
   static const TextStyle _bodyStyle = TextStyle(
-    fontSize: 15,
-    height: 1.6,
-    color: Color(0xFFE8E8EC),
+    fontSize: 15.5,
+    height: 1.75,
+    letterSpacing: 0.1,
+    color: Color(0xFFEDEDF2),
   );
 
   @override
@@ -52,37 +56,57 @@ class MarkdownBodyView extends StatelessWidget {
     switch (level) {
       case 1:
         return Padding(
-          padding: const EdgeInsets.only(top: 24, bottom: 12),
+          padding: const EdgeInsets.only(top: 28, bottom: 14),
           child: Text(
             text,
             style: const TextStyle(
               fontSize: 22,
               fontWeight: FontWeight.bold,
               color: Colors.white,
+              height: 1.3,
             ),
           ),
         );
       case 2:
+        // Small crimson accent bar to the left — makes section breaks easy
+        // to scan without leaning on emoji.
         return Padding(
-          padding: const EdgeInsets.only(top: 20, bottom: 8),
-          child: Text(
-            text,
-            style: const TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: Colors.white,
-            ),
+          padding: const EdgeInsets.only(top: 24, bottom: 10),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Container(
+                width: 4,
+                height: 18,
+                decoration: BoxDecoration(
+                  color: kLibraryCrimson,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  text,
+                  style: const TextStyle(
+                    fontSize: 18.5,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+            ],
           ),
         );
       default:
         return Padding(
-          padding: const EdgeInsets.only(top: 16, bottom: 8),
+          padding: const EdgeInsets.only(top: 18, bottom: 8),
           child: Text(
             text,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 15,
-              fontWeight: FontWeight.w600,
+              fontWeight: FontWeight.w700,
               color: kLibraryCrimson,
+              letterSpacing: 0.3,
             ),
           ),
         );
@@ -91,24 +115,41 @@ class MarkdownBodyView extends StatelessWidget {
 
   Widget _paragraph(String text) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.only(bottom: 14),
       child: RichText(text: TextSpan(children: _parseInline(text, _bodyStyle))),
     );
   }
 
   Widget _bullet(String text) {
+    // Bullets now sit inside a faint reddish-tinted row so a list of
+    // points reads as a distinct block instead of blending into plain
+    // paragraphs — helps scannability on long articles.
     return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text('•  ', style: _bodyStyle),
-          Expanded(
-            child: RichText(
-              text: TextSpan(children: _parseInline(text, _bodyStyle)),
-            ),
+      padding: const EdgeInsets.only(bottom: 10),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        decoration: BoxDecoration(
+          color: AppColors.bgCard.withOpacity(0.5),
+          borderRadius: BorderRadius.circular(10),
+          border: Border(
+            left: BorderSide(color: kLibraryCrimson.withOpacity(0.6), width: 3),
           ),
-        ],
+        ),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: const EdgeInsets.only(top: 1),
+              child: Icon(Icons.circle, size: 6, color: kLibraryCrimson),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: RichText(
+                text: TextSpan(children: _parseInline(text, _bodyStyle)),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

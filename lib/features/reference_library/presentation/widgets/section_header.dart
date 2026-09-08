@@ -25,8 +25,21 @@ class SectionHeader extends StatelessWidget {
             ),
           ),
           const SizedBox(width: 12),
-          const Expanded(
-            child: Divider(color: Color(0xFF2A2A3E), height: 1, thickness: 1),
+          Expanded(
+            child: Container(
+              height: 2,
+              decoration: BoxDecoration(
+                // Gradient fade instead of a flat gray line, so it reads
+                // clearly against the circuit-board background art instead
+                // of disappearing into it.
+                gradient: LinearGradient(
+                  colors: [
+                    kLibraryCrimson.withOpacity(0.55),
+                    kLibraryCrimson.withOpacity(0.0),
+                  ],
+                ),
+              ),
+            ),
           ),
         ],
       ),

@@ -47,10 +47,10 @@ const List<MissionData> allMissions = [
   MissionData(
     number: 1,
     tier: 'Basics',
-    title: 'Welcome to VulnShop',
-    subtitle: 'Orientation',
-    description: 'Introduction to EthixLabs, the VulnShop environment, and ethical hacking fundamentals.',
-    owaspCategory: '',
+    title: 'The Unlocked Door',
+    subtitle: 'SQLi — Login Bypass',
+    description: 'Learn how SQL injection works by bypassing authentication with a tautology payload like \' OR \'1\'=\'1.',
+    owaspCategory: 'A03:2021 — Injection',
     iconPath: 'assets/pixel_images/book.png',
     learnContent: '''EthixLabs is an ethical hacking learning platform. You will practice finding and exploiting vulnerabilities in VulnShop — a deliberately insecure e-commerce application.
 
@@ -61,47 +61,46 @@ Key rules:
 • In the Philippines, unauthorized access violates Republic Act 10175 (Cybercrime Prevention Act)
 • Always document your findings and report responsibly
 
-VulnShop simulates a real e-commerce platform with intentional security flaws across 6 OWASP vulnerability categories.''',
-    observeContent: '''Navigate through VulnShop and observe its features:
+Today's target concept: SQL Injection (SQLi). A login form is usually backed by a query like:
 
-• Login / Registration pages
-• Product catalog and search
-• Shopping cart and checkout
-• Order history and user profile
-• Admin panel (if discoverable)
+SELECT * FROM users WHERE username = '<input>' AND password = '<input>'
 
-As you explore, think like an attacker: what inputs does each page accept? What data is returned? Are there any patterns in URLs (like ?id=1)?
+If the app builds that query by directly pasting in whatever the user typed — instead of treating it strictly as data — an attacker can inject SQL syntax of their own. A classic tautology payload such as ' OR '1'='1'-- turns the WHERE clause into something that is always true, so the query returns a row (often the first user in the table) without ever knowing a real password.''',
+    observeContent: '''You have been assigned to audit VulnShop's login page. The development team suspects the login form was built without proper input validation.
 
-Write down:
-✓ Pages that accept user input
-✓ URL parameters you notice
-✓ Any error messages
-✓ Features that access other users' data''',
-    testPrompt: 'Explore VulnShop and type the URL parameter you noticed in the order history page:',
-    testFieldLabel: 'URL path or parameter (e.g. /orders?id=42)',
+Observations to make on the login form:
+✓ Username field
+✓ Password field
+✓ No CAPTCHA
+✓ No rate limiting
+✓ No visible input sanitization
+
+Think like an attacker: what happens if the username field is treated as raw SQL instead of plain text? Note any error messages or unusual behavior as you experiment.''',
+    testPrompt: 'Enter the payload that bypasses the login by making the SQL WHERE clause always true:',
+    testFieldLabel: "Username field payload (e.g. ' OR '1'='1'--)",
     identifyOptions: [
-      'SQL Injection',
       'Cross-Site Scripting (XSS)',
-      'Attack Surface Reconnaissance',
-      'Broken Access Control',
+      'SQL Injection (Login Bypass)',
+      'Insecure Direct Object Reference (IDOR)',
+      'Path Traversal',
     ],
-    identifyCorrectIndex: 2,
-    analyzeContent: '''Attack surface reconnaissance is the first step in any security assessment.
+    identifyCorrectIndex: 1,
+    analyzeContent: '''What can an attacker do?
+An attacker can authenticate as any user (including admin) without valid credentials.
 
-By mapping all input points and URL parameters, you build a mental model of where vulnerabilities can hide.
+Consequences:
+• Theft of customer data
+• Unauthorized modifications
+• Full account takeover
 
-Why this matters:
-• Every input is a potential injection point
-• URL parameters that reference IDs may be vulnerable to IDOR
-• Verbose error messages reveal backend technology
-• Unlinked pages may expose admin functionality
+CVSS Score: 9.8 (Critical)
 
-This reconnaissance skill underlies all 25 missions in EthixLabs.''',
+The payload manipulated the SQL query structure, making the WHERE condition always true — this is why unsanitized string concatenation in SQL queries is so dangerous.''',
     applyOptions: [
-      'Restrict all URL parameters to hide application structure',
-      'Map attack surfaces and perform security testing with authorization',
-      'Block all external access to prevent reconnaissance',
-      'Rename all URL parameters to prevent enumeration',
+      'Block single quotes from input',
+      'Use parameterized queries (prepared statements)',
+      'Hash the username before querying',
+      'Add a CAPTCHA to the login form',
     ],
     applyCorrectIndex: 1,
   ),

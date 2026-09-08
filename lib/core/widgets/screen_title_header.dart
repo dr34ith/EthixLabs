@@ -17,16 +17,16 @@ class ScreenTitleHeader extends StatelessWidget {
     return SizedBox(
       width: double.infinity,
       child: Padding(
-        padding: const EdgeInsets.only(top: 20, bottom: 16, left: 16, right: 16),
+      padding: const EdgeInsets.only(top: 20, bottom: 5, left: 50, right: 16),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
+         crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(title, style: AppTypography.displayMedium, textAlign: TextAlign.center),
+            Text(title, style: AppTypography.displayMedium, textAlign: TextAlign.left),
             if (subtitle != null) ...[
               const SizedBox(height: 6),
               Text(subtitle!,
                   style: AppTypography.bodySmall.copyWith(color: AppColors.textMuted),
-                  textAlign: TextAlign.center),
+                  textAlign: TextAlign.left),
             ],
           ],
         ),

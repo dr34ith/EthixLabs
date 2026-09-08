@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:ethixlabs/providers/app_provider.dart';
-import 'package:ethixlabs/theme.dart';
 import 'package:ethixlabs/missions/stages/learn_stage.dart';
 import 'package:ethixlabs/missions/stages/observe_stage.dart';
 import 'package:ethixlabs/missions/stages/test_stage.dart';
@@ -11,10 +10,29 @@ import 'package:ethixlabs/missions/stages/analyze_stage.dart';
 import 'package:ethixlabs/missions/stages/apply_stage.dart';
 import 'package:ethixlabs/missions/data/missions_data.dart';
 
+// Light "storefront" palette for this screen only — the VulnShop brand red
+// instead of the app's dark hacker theme, so it reads like a real shopping
+// app rather than a terminal. Nothing outside this file is affected.
+const Color _vsRed = Color(0xFFEE1111);
+const Color _vsRedDark = Color(0xFFC0392B);
+const Color _msOrange = Color(0xFFFF8A00);
+const Color _msOrangeDark = Color(0xFFCC6E00);
+const Color _vsBg = Color(0xFFF5F6F8);
+const Color _vsCard = Colors.white;
+const Color _vsTextPrimary = Color(0xFF1A1A1A);
+const Color _vsTextSecondary = Color(0xFF6B6B6B);
+const Color _vsBorder = Color(0xFFE4E4E7);
+
 class MissionDetailScreen extends StatelessWidget {
   final MissionData mission;
 
   const MissionDetailScreen({Key? key, required this.mission}) : super(key: key);
+
+  // Mission 1's 6-stage workflow (Learn/Observe/Test/Identify/Analyze/Apply)
+  // uses an orange accent instead of the default VulnShop red. Other
+  // missions are unaffected.
+  Color get _stageAccent => mission.number == 1 ? _msOrange : _vsRed;
+  Color get _stageAccentDark => mission.number == 1 ? _msOrangeDark : _vsRedDark;
 
   @override
   Widget build(BuildContext context) {
@@ -32,7 +50,7 @@ class MissionDetailScreen extends StatelessWidget {
     ];
 
     return Scaffold(
-      backgroundColor: AppColors.bgPrimary,
+      backgroundColor: _vsBg,
       appBar: AppBar(
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.white),
@@ -45,76 +63,64 @@ class MissionDetailScreen extends StatelessWidget {
             child: Image.asset(
               'assets/icons/vulnShop.png',
               height: 54,
-              errorBuilder: (c, e, s) => const Icon(Icons.shopping_cart, color: Colors.white),
+              errorBuilder: (c, e, s) => const Icon(Icons.storefront, color: Colors.white),
             ),
           ),
         ],
         backgroundColor: Colors.transparent,
         elevation: 0,
         flexibleSpace: Container(
+          // Storefront red header — same brand red used inside the actual
+          // VulnShop pages, so the hand-off from this screen feels
+          // continuous instead of jumping from dark to light.
           decoration: const BoxDecoration(
             gradient: LinearGradient(
-              colors: [Color(0xFFC0392B), Color(0xFF922B21)],
+              colors: [_vsRed, _vsRedDark],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
             ),
           ),
         ),
       ),
-      body: Stack(
-        children: [
-          // Background
-          Positioned.fill(
-            child: Image.asset(
-              'assets/images/mission_bg.jpg',
-              fit: BoxFit.cover,
-              errorBuilder: (c, e, s) => Container(color: AppColors.background),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // ── Mission Header Card ──
+            _buildHeaderCard(context, progress, unlocked),
+            const SizedBox(height: 28),
+
+            // ── Mission Steps ──
+            Text(
+              'Mission Steps',
+              style: GoogleFonts.orbitron(
+                fontSize: 14,
+                fontWeight: FontWeight.bold,
+                color: _stageAccent,
+                letterSpacing: 1.5,
+              ),
             ),
-          ),
-          Positioned.fill(child: Container(color: Colors.black.withOpacity(0.55))),
+            const SizedBox(height: 14),
 
-          // Content
-          SingleChildScrollView(
-            padding: const EdgeInsets.all(20),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // ── Mission Header Card ──
-                _buildHeaderCard(context, progress, unlocked),
-                const SizedBox(height: 28),
+            ...stages.asMap().entries.map((entry) {
+              final i = entry.key;
+              final stage = entry.value;
+              final isCompleted = progress.completedStages.contains(stage.stage);
+              final isUnlocked = provider.isStageUnlocked(mission.number, stage.stage);
+              return _buildStageCard(
+                context: context,
+                provider: provider,
+                stageInfo: stage,
+                stepNumber: i + 1,
+                isCompleted: isCompleted,
+                isUnlocked: isUnlocked && unlocked,
+              );
+            }),
 
-                // ── Mission Steps ──
-                Text(
-                  'Mission Steps',
-                  style: GoogleFonts.orbitron(
-                    fontSize: 14,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.accent,
-                    letterSpacing: 1.5,
-                  ),
-                ),
-                const SizedBox(height: 14),
-
-                ...stages.asMap().entries.map((entry) {
-                  final i = entry.key;
-                  final stage = entry.value;
-                  final isCompleted = progress.completedStages.contains(stage.stage);
-                  final isUnlocked = provider.isStageUnlocked(mission.number, stage.stage);
-                  return _buildStageCard(
-                    context: context,
-                    provider: provider,
-                    stageInfo: stage,
-                    stepNumber: i + 1,
-                    isCompleted: isCompleted,
-                    isUnlocked: isUnlocked && unlocked,
-                  );
-                }),
-
-                const SizedBox(height: 40),
-              ],
-            ),
-          ),
-        ],
+            const SizedBox(height: 40),
+          ],
+        ),
       ),
     );
   }
@@ -125,10 +131,12 @@ class MissionDetailScreen extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.black.withOpacity(0.6),
+        color: _vsCard,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.accent.withOpacity(0.6), width: 1.5),
-        boxShadow: [BoxShadow(color: AppColors.accent.withOpacity(0.12), blurRadius: 12)],
+        border: Border.all(color: _vsBorder, width: 1),
+        boxShadow: [
+          BoxShadow(color: Colors.black.withOpacity(0.06), blurRadius: 16, offset: const Offset(0, 4)),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -139,25 +147,25 @@ class MissionDetailScreen extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                 decoration: BoxDecoration(
-                  color: AppColors.accent,
+                  color: _vsRed,
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Text(
                   'MISSION ${mission.number}',
-                  style: GoogleFonts.orbitron(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.black),
+                  style: GoogleFonts.orbitron(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.white),
                 ),
               ),
               const SizedBox(width: 8),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.1),
+                  color: _vsRed.withOpacity(0.08),
                   borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: AppColors.accent.withOpacity(0.4)),
+                  border: Border.all(color: _vsRed.withOpacity(0.35)),
                 ),
                 child: Text(
                   mission.tier.toUpperCase(),
-                  style: GoogleFonts.robotoMono(fontSize: 10, color: AppColors.accent),
+                  style: GoogleFonts.robotoMono(fontSize: 10, color: _vsRedDark, fontWeight: FontWeight.w600),
                 ),
               ),
             ],
@@ -165,20 +173,20 @@ class MissionDetailScreen extends StatelessWidget {
           const SizedBox(height: 12),
           Text(
             '${mission.subtitle.toUpperCase()}\n${mission.title.toUpperCase()}',
-            style: GoogleFonts.orbitron(fontSize: 18, fontWeight: FontWeight.w900, color: Colors.white, height: 1.3),
+            style: GoogleFonts.orbitron(fontSize: 18, fontWeight: FontWeight.w900, color: _vsTextPrimary, height: 1.3),
           ),
           const SizedBox(height: 10),
-          Text(mission.description, style: const TextStyle(color: Colors.white70, fontSize: 13, height: 1.5)),
+          Text(mission.description, style: const TextStyle(color: _vsTextSecondary, fontSize: 13, height: 1.5)),
           const SizedBox(height: 14),
           if (mission.owaspCategory.isNotEmpty)
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
               decoration: BoxDecoration(
-                color: AppColors.accent.withOpacity(0.12),
+                color: _vsRed.withOpacity(0.08),
                 borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: AppColors.accent.withOpacity(0.4)),
+                border: Border.all(color: _vsRed.withOpacity(0.3)),
               ),
-              child: Text(mission.owaspCategory, style: GoogleFonts.robotoMono(color: AppColors.accent, fontSize: 11)),
+              child: Text(mission.owaspCategory, style: GoogleFonts.robotoMono(color: _vsRedDark, fontSize: 11, fontWeight: FontWeight.w600)),
             ),
           const SizedBox(height: 16),
           // Progress indicator
@@ -190,15 +198,15 @@ class MissionDetailScreen extends StatelessWidget {
                   child: LinearProgressIndicator(
                     value: completedCount / 6,
                     minHeight: 6,
-                    backgroundColor: Colors.white12,
+                    backgroundColor: _vsBorder,
                     valueColor: AlwaysStoppedAnimation<Color>(
-                      progress.missionCompleted ? Colors.green : AppColors.accent,
+                      progress.missionCompleted ? Colors.green : _vsRed,
                     ),
                   ),
                 ),
               ),
               const SizedBox(width: 12),
-              Text('$completedCount/6', style: TextStyle(color: AppColors.accent, fontSize: 12, fontWeight: FontWeight.bold)),
+              Text('$completedCount/6', style: const TextStyle(color: _vsRedDark, fontSize: 12, fontWeight: FontWeight.bold)),
             ],
           ),
           const SizedBox(height: 16),
@@ -214,11 +222,13 @@ class MissionDetailScreen extends StatelessWidget {
                   style: GoogleFonts.orbitron(fontSize: 13, fontWeight: FontWeight.bold),
                 ),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: unlocked ? AppColors.accent : Colors.grey.shade800,
+                  backgroundColor: unlocked ? _vsRed : Colors.grey.shade300,
                   foregroundColor: Colors.white,
+                  disabledBackgroundColor: Colors.grey.shade300,
+                  disabledForegroundColor: Colors.grey.shade500,
                   padding: const EdgeInsets.symmetric(vertical: 14),
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
-                  side: BorderSide(color: unlocked ? AppColors.accent : Colors.grey, width: 1.5),
+                  elevation: 0,
                 ),
               ),
             )
@@ -227,7 +237,7 @@ class MissionDetailScreen extends StatelessWidget {
               width: double.infinity,
               padding: const EdgeInsets.symmetric(vertical: 12),
               decoration: BoxDecoration(
-                color: Colors.green.withOpacity(0.15),
+                color: Colors.green.withOpacity(0.08),
                 borderRadius: BorderRadius.circular(30),
                 border: Border.all(color: Colors.green, width: 1.5),
               ),
@@ -236,9 +246,9 @@ class MissionDetailScreen extends StatelessWidget {
                 children: [
                   const Icon(Icons.check_circle, color: Colors.green, size: 18),
                   const SizedBox(width: 8),
-                  Text('MISSION COMPLETE', style: GoogleFonts.orbitron(fontSize: 13, color: Colors.green, fontWeight: FontWeight.bold)),
+                  Text('MISSION COMPLETE', style: GoogleFonts.orbitron(fontSize: 13, color: Colors.green.shade700, fontWeight: FontWeight.bold)),
                   const SizedBox(width: 8),
-                  Text('🏆 ${progress.starsEarned}★', style: const TextStyle(fontSize: 13, color: Colors.amber)),
+                  Text('🏆 ${progress.starsEarned}★', style: const TextStyle(fontSize: 13, color: Color(0xFFB8860B))),
                 ],
               ),
             ),
@@ -306,19 +316,22 @@ class MissionDetailScreen extends StatelessWidget {
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
             color: isCompleted
-                ? Colors.green.withOpacity(0.08)
+                ? Colors.green.withOpacity(0.05)
                 : isUnlocked
-                    ? Colors.black.withOpacity(0.5)
-                    : Colors.black.withOpacity(0.35),
+                    ? _vsCard
+                    : const Color(0xFFF0F0F1),
             borderRadius: BorderRadius.circular(16),
             border: Border.all(
               color: isCompleted
-                  ? Colors.green.withOpacity(0.5)
+                  ? Colors.green.withOpacity(0.4)
                   : isUnlocked
-                      ? AppColors.accent.withOpacity(0.6)
-                      : Colors.white12,
+                      ? _stageAccent.withOpacity(0.3)
+                      : _vsBorder,
               width: 1.5,
             ),
+            boxShadow: isUnlocked
+                ? [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, 3))]
+                : null,
           ),
           child: Row(
             children: [
@@ -327,10 +340,10 @@ class MissionDetailScreen extends StatelessWidget {
                 width: 58,
                 height: 58,
                 decoration: BoxDecoration(
-                  color: const Color(0xFF1A0A10),
+                  color: isCompleted ? Colors.green.withOpacity(0.08) : _stageAccent.withOpacity(0.06),
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(
-                    color: isCompleted ? Colors.green.withOpacity(0.5) : AppColors.accent.withOpacity(0.3),
+                    color: isCompleted ? Colors.green.withOpacity(0.4) : _stageAccent.withOpacity(0.25),
                   ),
                 ),
                 child: Stack(
@@ -340,16 +353,16 @@ class MissionDetailScreen extends StatelessWidget {
                       child: Image.asset(
                         stageInfo.iconPath,
                         fit: BoxFit.contain,
-                        errorBuilder: (c, e, s) => Icon(Icons.circle, color: AppColors.accent.withOpacity(0.5), size: 30),
+                        errorBuilder: (c, e, s) => Icon(Icons.circle, color: _stageAccent.withOpacity(0.4), size: 30),
                       ),
                     ),
                     if (!isUnlocked)
                       Container(
                         decoration: BoxDecoration(
-                          color: Colors.black.withOpacity(0.65),
+                          color: Colors.white.withOpacity(0.75),
                           borderRadius: BorderRadius.circular(12),
                         ),
-                        child: const Center(child: Icon(Icons.lock, color: Colors.white38, size: 20)),
+                        child: Center(child: Icon(Icons.lock, color: Colors.grey.shade400, size: 20)),
                       ),
                   ],
                 ),
@@ -365,7 +378,7 @@ class MissionDetailScreen extends StatelessWidget {
                       style: GoogleFonts.orbitron(
                         fontSize: 15,
                         fontWeight: FontWeight.bold,
-                        color: isUnlocked ? Colors.white : Colors.white38,
+                        color: isUnlocked ? _vsTextPrimary : Colors.grey.shade400,
                         letterSpacing: 0.5,
                       ),
                     ),
@@ -374,7 +387,7 @@ class MissionDetailScreen extends StatelessWidget {
                       stageInfo.description,
                       style: TextStyle(
                         fontSize: 12,
-                        color: isUnlocked ? Colors.white60 : Colors.white24,
+                        color: isUnlocked ? _vsTextSecondary : Colors.grey.shade400,
                         height: 1.3,
                       ),
                     ),
@@ -386,8 +399,8 @@ class MissionDetailScreen extends StatelessWidget {
               isCompleted
                   ? const Icon(Icons.check_circle, color: Colors.green, size: 22)
                   : isUnlocked
-                      ? Icon(Icons.arrow_forward_ios, color: AppColors.accent, size: 16)
-                      : const Icon(Icons.lock, color: Colors.white24, size: 18),
+                      ? Icon(Icons.arrow_forward_ios, color: _stageAccent, size: 16)
+                      : Icon(Icons.lock, color: Colors.grey.shade400, size: 18),
             ],
           ),
         ),

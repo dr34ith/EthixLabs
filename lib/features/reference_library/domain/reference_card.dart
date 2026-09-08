@@ -32,6 +32,7 @@ class ReferenceCard {
   final String difficulty; // 'Easy' | 'Medium' | 'Hard'
   final ReferenceSection section;
   final bool isInteractive;
+  final String? imageUrl; // Optional banner image shown on the library card.
 
   const ReferenceCard({
     required this.id,
@@ -43,5 +44,6 @@ class ReferenceCard {
     required this.difficulty,
     required this.section,
     this.isInteractive = false,
+    this.imageUrl,
   });
 }
